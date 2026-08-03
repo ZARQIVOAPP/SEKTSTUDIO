@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { NODES, CONNECTIONS, getNodeCenter, getNodeById, getCanvasBounds } from '@/lib/canvas-config';
 import { useCamera } from '@/lib/camera';
 
@@ -8,45 +8,47 @@ interface MinimapProps {
   onNodeClick: (nodeId: string) => void;
 }
 
+// Pre-compute layout constants
+const bounds = getCanvasBounds();
+const pad = 600;
+const logicalW = bounds.width + pad * 2;
+const logicalH = bounds.height + pad * 2;
+const mapW = 200;
+const mapH = 140;
+const scale = Math.min(mapW / logicalW, mapH / logicalH);
+const oX = (mapW - logicalW * scale) / 2 - (bounds.minX - pad) * scale;
+const oY = (mapH - logicalH * scale) / 2 - (bounds.minY - pad) * scale;
+const tx = (x: number) => x * scale + oX;
+const ty = (y: number) => y * scale + oY;
+const tw = (w: number) => w * scale;
+const th = (h: number) => h * scale;
+
 export function Minimap({ onNodeClick }: MinimapProps) {
   const { cameraRef, activeNodeId } = useCamera();
-  const [viewport, setViewport] = useState({ x: 0, y: 0, w: 0, h: 0 });
+  const viewportRef = useRef<SVGRectElement>(null);
 
-  // Update viewport indicator via RAF
+  // Update viewport indicator via RAF — direct DOM, NO React state
   useEffect(() => {
     let frame: number;
     const update = () => {
       const cam = cameraRef.current;
-      const w = window.innerWidth / (cam.zoom || 0.1);
-      const h = window.innerHeight / (cam.zoom || 0.1);
-      const vx = -cam.x / (cam.zoom || 0.1);
-      const vy = -cam.y / (cam.zoom || 0.1);
-      setViewport({ x: vx, y: vy, w, h });
+      const el = viewportRef.current;
+      if (el) {
+        const z = cam.zoom || 0.1;
+        el.setAttribute('x', String(tx(-cam.x / z)));
+        el.setAttribute('y', String(ty(-cam.y / z)));
+        el.setAttribute('width', String(tw(window.innerWidth / z)));
+        el.setAttribute('height', String(th(window.innerHeight / z)));
+      }
       frame = requestAnimationFrame(update);
     };
     frame = requestAnimationFrame(update);
     return () => cancelAnimationFrame(frame);
   }, [cameraRef]);
 
-  // Compute scale to fit all nodes in minimap
-  const bounds = getCanvasBounds();
-  const pad = 600;
-  const logicalW = bounds.width + pad * 2;
-  const logicalH = bounds.height + pad * 2;
-  const mapW = 220;
-  const mapH = 160;
-  const scale = Math.min(mapW / logicalW, mapH / logicalH);
-  const oX = (mapW - logicalW * scale) / 2 - (bounds.minX - pad) * scale;
-  const oY = (mapH - logicalH * scale) / 2 - (bounds.minY - pad) * scale;
-
-  const tx = (x: number) => x * scale + oX;
-  const ty = (y: number) => y * scale + oY;
-  const tw = (w: number) => w * scale;
-  const th = (h: number) => h * scale;
-
   return (
     <div
-      className="backdrop-blur-xl"
+      className="backdrop-blur-md"
       style={{
         position: 'fixed',
         bottom: 24,
@@ -54,10 +56,10 @@ export function Minimap({ onNodeClick }: MinimapProps) {
         zIndex: 80,
         width: mapW,
         height: mapH,
-        borderRadius: 12,
+        borderRadius: 10,
         overflow: 'hidden',
         pointerEvents: 'auto',
-        backgroundColor: 'rgba(17,17,17,0.75)',
+        backgroundColor: 'rgba(17,17,17,0.6)',
         border: '1px solid rgba(255,255,255,0.06)',
       }}
     >
@@ -66,10 +68,10 @@ export function Minimap({ onNodeClick }: MinimapProps) {
         className="font-mono uppercase tracking-widest"
         style={{
           position: 'absolute',
-          top: 8,
-          left: 10,
-          fontSize: '7px',
-          color: 'rgba(255,255,255,0.35)',
+          top: 6,
+          left: 8,
+          fontSize: '6px',
+          color: 'rgba(255,255,255,0.3)',
           zIndex: 10,
           pointerEvents: 'none',
         }}
@@ -77,7 +79,7 @@ export function Minimap({ onNodeClick }: MinimapProps) {
         MAP
       </div>
 
-      {/* SVG layer: connections + viewport rect */}
+      {/* SVG: connections + viewport */}
       <svg
         width={mapW}
         height={mapH}
@@ -101,20 +103,13 @@ export function Minimap({ onNodeClick }: MinimapProps) {
             />
           );
         })}
-
-        {/* Viewport rectangle */}
-        {viewport.w > 0 && (
-          <rect
-            x={tx(viewport.x)}
-            y={ty(viewport.y)}
-            width={tw(viewport.w)}
-            height={th(viewport.h)}
-            fill="none"
-            stroke="rgba(255,255,255,0.25)"
-            strokeWidth={1}
-            rx={1}
-          />
-        )}
+        <rect
+          ref={viewportRef}
+          fill="none"
+          stroke="rgba(255,255,255,0.25)"
+          strokeWidth={1}
+          rx={1}
+        />
       </svg>
 
       {/* Node rectangles */}
@@ -136,12 +131,11 @@ export function Minimap({ onNodeClick }: MinimapProps) {
               transition: 'background-color 0.3s, border-color 0.3s',
             }}
           >
-            {/* Node label */}
             <span
               className="font-mono"
               style={{
                 position: 'absolute',
-                bottom: -10,
+                bottom: -9,
                 left: '50%',
                 transform: 'translateX(-50%)',
                 fontSize: '5px',

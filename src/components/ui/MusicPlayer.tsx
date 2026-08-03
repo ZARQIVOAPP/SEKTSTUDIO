@@ -318,37 +318,58 @@ export function MusicPlayer() {
     setIsMenuOpen(false);
   }, [isPlaying]);
 
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const formatTime = (s: number) =>
     `${String(Math.floor(s / 60)).padStart(1, '0')}:${String(s % 60).padStart(2, '0')}`;
 
   return (
-    <div className="fixed bottom-6 left-6 z-[90] flex flex-col items-start gap-2">
-      {/* Track Menu */}
+    <div className="fixed bottom-6 left-6 z-[90]">
+      {/* Expanded Panel */}
       <AnimatePresence>
-        {isMenuOpen && (
+        {isExpanded && (
           <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            initial={{ opacity: 0, y: 10, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            exit={{ opacity: 0, y: 10, scale: 0.9 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="rounded-xl overflow-hidden backdrop-blur-xl"
+            className="absolute bottom-14 left-0 rounded-xl overflow-hidden backdrop-blur-xl"
             style={{
               backgroundColor: 'rgba(17,17,17,0.92)',
               border: '1px solid rgba(255,255,255,0.08)',
-              width: '260px',
+              width: '240px',
             }}
           >
-            {/* Menu Header */}
+            {/* Now Playing */}
             <div
-              className="px-4 py-3 font-mono uppercase tracking-widest flex items-center justify-between"
-              style={{
-                fontSize: '9px',
-                color: 'var(--color-text-muted)',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
-              }}
+              className="flex items-center gap-3 px-4 py-3"
+              style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
             >
-              <span>Now Playing</span>
-              <span>{isPlaying ? '● Live' : '○ Paused'}</span>
+              <button
+                onClick={togglePlay}
+                className="flex items-center justify-center"
+                style={{ width: 20, height: 20, color: 'var(--color-text-primary)' }}
+                aria-label={isPlaying ? 'Pause' : 'Play'}
+              >
+                {isPlaying ? (
+                  <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor">
+                    <rect x="0" y="0" width="3" height="12" rx="1" />
+                    <rect x="7" y="0" width="3" height="12" rx="1" />
+                  </svg>
+                ) : (
+                  <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor">
+                    <path d="M0 0L10 6L0 12Z" />
+                  </svg>
+                )}
+              </button>
+              <div className="flex-1 min-w-0">
+                <div className="font-display font-medium truncate" style={{ fontSize: '11px', color: 'var(--color-text-primary)' }}>
+                  {currentTrack.title}
+                </div>
+                <div className="font-mono" style={{ fontSize: '8px', color: 'var(--color-text-muted)' }}>
+                  {formatTime(elapsed)} / {formatTime(currentTrack.duration)}
+                </div>
+              </div>
             </div>
 
             {/* Track List */}
@@ -359,76 +380,20 @@ export function MusicPlayer() {
                   <button
                     key={track.id}
                     onClick={() => selectTrack(index)}
-                    className="w-full px-4 py-3 flex items-center gap-3 transition-colors duration-200 text-left"
+                    className="w-full flex items-center gap-3 px-4 py-2 transition-colors duration-150 text-left"
                     style={{
                       backgroundColor: isActive ? 'rgba(255,255,255,0.05)' : 'transparent',
                     }}
-                    onMouseEnter={(e) => {
-                      if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)';
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
-                    }}
                   >
-                    {/* Track Number / Playing Indicator */}
-                    <span
-                      className="font-mono flex-shrink-0"
-                      style={{
-                        fontSize: '9px',
-                        color: isActive && isPlaying ? 'var(--color-accent)' : 'var(--color-text-muted)',
-                        width: '16px',
-                      }}
-                    >
-                      {isActive && isPlaying ? (
-                        <span className="flex gap-[2px] items-end h-[10px]">
-                          {[0, 1, 2].map((i) => (
-                            <motion.span
-                              key={i}
-                              className="block rounded-full"
-                              style={{
-                                width: '2px',
-                                backgroundColor: 'var(--color-accent)',
-                              }}
-                              animate={{
-                                height: ['3px', `${8 + Math.random() * 6}px`, '3px'],
-                              }}
-                              transition={{
-                                duration: 0.5 + i * 0.15,
-                                repeat: Infinity,
-                                ease: 'easeInOut',
-                              }}
-                            />
-                          ))}
-                        </span>
-                      ) : (
-                        String(index + 1).padStart(2, '0')
-                      )}
+                    <span className="font-mono flex-shrink-0" style={{ fontSize: '9px', color: isActive ? 'var(--color-accent)' : 'var(--color-text-muted)', width: 16 }}>
+                      {isActive && isPlaying ? '\u25B6' : String(index + 1).padStart(2, '0')}
                     </span>
-
-                    {/* Track Info */}
                     <div className="flex-1 min-w-0">
-                      <div
-                        className="font-display font-medium truncate"
-                        style={{
-                          fontSize: '13px',
-                          color: isActive ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
-                        }}
-                      >
+                      <div className="font-display font-medium truncate" style={{ fontSize: '11px', color: isActive ? 'var(--color-text-primary)' : 'var(--color-text-secondary)' }}>
                         {track.title}
                       </div>
-                      <div
-                        className="font-mono truncate"
-                        style={{ fontSize: '9px', color: 'var(--color-text-muted)' }}
-                      >
-                        {track.artist}
-                      </div>
                     </div>
-
-                    {/* Duration */}
-                    <span
-                      className="font-mono flex-shrink-0"
-                      style={{ fontSize: '9px', color: 'var(--color-text-muted)' }}
-                    >
+                    <span className="font-mono flex-shrink-0" style={{ fontSize: '8px', color: 'var(--color-text-muted)' }}>
                       {formatTime(track.duration)}
                     </span>
                   </button>
@@ -439,102 +404,47 @@ export function MusicPlayer() {
         )}
       </AnimatePresence>
 
-      {/* Player Control Bar */}
-      <motion.div
-        className="flex items-center gap-3 rounded-full cursor-pointer select-none backdrop-blur-xl"
+      {/* Compact Circle Button */}
+      <motion.button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="flex items-center justify-center rounded-full backdrop-blur-xl cursor-pointer"
         style={{
-          padding: '8px 16px',
+          width: 44,
+          height: 44,
           backgroundColor: 'rgba(17,17,17,0.85)',
-          border: '1px solid rgba(255,255,255,0.08)',
+          border: '1px solid rgba(255,255,255,0.1)',
         }}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.95 }}
+        aria-label="Music player"
       >
-        {/* Play/Pause */}
-        <button
-          onClick={togglePlay}
-          className="flex items-center justify-center transition-colors duration-200"
-          style={{
-            width: '24px',
-            height: '24px',
-            color: 'var(--color-text-primary)',
-          }}
-          aria-label={isPlaying ? 'Pause' : 'Play'}
-        >
-          {isPlaying ? (
-            <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor">
-              <rect x="0" y="0" width="3" height="12" rx="1" />
-              <rect x="7" y="0" width="3" height="12" rx="1" />
-            </svg>
-          ) : (
-            <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor">
-              <path d="M0 0L10 6L0 12Z" />
-            </svg>
-          )}
-        </button>
-
-        {/* Track Info & Progress */}
-        <div className="flex flex-col items-start" style={{ minWidth: '90px' }}>
-          <span
-            className="font-display font-medium truncate"
-            style={{
-              fontSize: '11px',
-              color: 'var(--color-text-primary)',
-              maxWidth: '100px',
-            }}
-          >
-            {currentTrack.title}
+        {isPlaying ? (
+          <span className="flex gap-[2px] items-end" style={{ height: 14 }}>
+            {[0, 1, 2].map((i) => (
+              <motion.span
+                key={i}
+                className="block rounded-full"
+                style={{
+                  width: '2px',
+                  backgroundColor: 'var(--color-text-primary)',
+                }}
+                animate={{ height: ['3px', `${6 + i * 3}px`, '3px'] }}
+                transition={{
+                  duration: 0.6 + i * 0.15,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+              />
+            ))}
           </span>
-          <span
-            className="font-mono"
-            style={{ fontSize: '9px', color: 'var(--color-text-muted)' }}
-          >
-            {formatTime(elapsed)} / {formatTime(currentTrack.duration)}
-          </span>
-        </div>
-
-        {/* Equalizer Bars (playing indicator) */}
-        <div className="flex gap-[2px] items-end" style={{ height: '14px' }}>
-          {[0, 1, 2].map((i) => (
-            <motion.div
-              key={i}
-              className="rounded-full"
-              style={{
-                width: '2px',
-                backgroundColor: isPlaying ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
-              }}
-              animate={
-                isPlaying
-                  ? { height: ['3px', `${6 + Math.random() * 8}px`, '3px'] }
-                  : { height: '3px' }
-              }
-              transition={
-                isPlaying
-                  ? { duration: 0.6 + i * 0.15, repeat: Infinity, ease: 'easeInOut' }
-                  : { duration: 0.3 }
-              }
-            />
-          ))}
-        </div>
-
-        {/* Menu Toggle */}
-        <button
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="flex items-center justify-center transition-colors duration-200"
-          style={{
-            width: '20px',
-            height: '20px',
-            color: isMenuOpen ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
-          }}
-          aria-label="Toggle track menu"
-        >
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <line x1="1" y1="4" x2="13" y2="4" />
-            <line x1="1" y1="7" x2="10" y2="7" />
-            <line x1="1" y1="10" x2="7" y2="10" />
+        ) : (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 18V5l12-2v13" />
+            <circle cx="6" cy="18" r="3" />
+            <circle cx="18" cy="16" r="3" />
           </svg>
-        </button>
-      </motion.div>
+        )}
+      </motion.button>
     </div>
   );
 }

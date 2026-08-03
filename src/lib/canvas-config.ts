@@ -85,7 +85,7 @@ export const NODES: NodeConfig[] = [
     id: 'contact',
     label: 'Contact',
     x: 5600,
-    y: 3000,
+    y: 3600,
     width: 1200,
     height: 900,
     focusZoom: 0.7,
@@ -105,11 +105,12 @@ export const CONNECTIONS: ConnectionConfig[] = [
   { id: 'journal-contact', from: 'journal', to: 'contact' },
 ];
 
-// Camera defaults
 export const CAMERA_DEFAULTS = {
-  initialZoom: 0.08, // start zoomed way out to see all nodes
-  minZoom: 0.04,
-  maxZoom: 1.2,
+  initialZoom: 0.08,
+  minZoom: 0.08,   // can't zoom out beyond the node space
+  maxZoom: 0.8,    // can't zoom in too much
+  zoomIn: 1.04,    // slower zoom steps
+  zoomOut: 0.96,
   friction: 0.92,
   velocityThreshold: 0.5,
   panEase: 'power4.inOut' as const,

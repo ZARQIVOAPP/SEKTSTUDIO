@@ -1,7 +1,6 @@
 'use client';
 
 import { type ReactNode, memo } from 'react';
-import { motion } from 'motion/react';
 import type { NodeConfig } from '@/lib/canvas-config';
 
 interface CanvasNodeProps {
@@ -27,47 +26,45 @@ export const CanvasNode = memo(function CanvasNode({
         height: node.height,
       }}
     >
-      <motion.div
-        className="relative w-full h-full overflow-hidden"
+      <div
+        className="relative w-full h-full"
         style={{
-          border: `1px solid ${isActive ? 'var(--color-border)' : 'var(--color-border)'}`,
+          border: isActive
+            ? '6px solid var(--color-text-primary)'
+            : '4px solid var(--color-text-secondary)',
           backgroundColor: 'var(--color-bg-primary)',
-          transition: 'border-color 0.6s ease',
-        }}
-        animate={{
-          opacity: isActive ? 1 : 0.5,
-          filter: isActive ? 'blur(0px)' : 'blur(1.5px)',
-          scale: isActive ? 1 : 0.98,
-        }}
-        transition={{
-          duration: 0.8,
-          ease: [0.16, 1, 0.3, 1],
+          opacity: isActive ? 1 : 0.9,
+          boxShadow: isActive
+            ? '0 0 100px rgba(255,255,255,0.15), 0 0 0 3px var(--color-text-primary)'
+            : '0 0 50px rgba(255,255,255,0.1), 0 0 0 2px var(--color-text-secondary)',
+          transition: 'opacity 0.6s ease, border-color 0.4s ease, box-shadow 0.6s ease',
+          overflow: 'hidden',
         }}
       >
-        {/* ─── Node Label (visible when unfocused) ─── */}
-        <motion.div
+        {/* ─── Node Label ─── */}
+        <div
           className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none"
-          style={{ zIndex: 10 }}
-          animate={{ opacity: isActive ? 0 : 1 }}
-          transition={{ duration: 0.4 }}
+          style={{
+            zIndex: 10,
+            opacity: isActive ? 0 : 1,
+            transition: 'opacity 0.4s ease',
+          }}
         >
-          {/* Section Index */}
           <span
             className="font-mono uppercase tracking-[0.5em] block"
             style={{
-              fontSize: '18px',
-              color: 'var(--color-text-muted)',
-              marginBottom: '16px',
+              fontSize: '22px',
+              color: 'var(--color-text-secondary)',
+              marginBottom: '20px',
             }}
           >
             {node.sectionIndex}
           </span>
 
-          {/* Section Title — big and bold */}
           <span
             className="font-display font-bold uppercase tracking-tight"
             style={{
-              fontSize: 'clamp(3rem, 6vw, 7rem)',
+              fontSize: 'clamp(3.5rem, 7vw, 8rem)',
               color: 'var(--color-text-primary)',
               lineHeight: 1,
               textAlign: 'center',
@@ -76,26 +73,21 @@ export const CanvasNode = memo(function CanvasNode({
             {node.label}
           </span>
 
-          {/* Decorative line */}
           <div
             style={{
-              width: '40px',
-              height: '1px',
+              width: '60px',
+              height: '3px',
               backgroundColor: 'var(--color-accent)',
-              marginTop: '20px',
-              opacity: 0.6,
+              marginTop: '24px',
             }}
           />
-        </motion.div>
+        </div>
 
-        {/* ─── Full section content (only rendered when active) ─── */}
+        {/* ─── Section content ─── */}
         {isActive && (
-          <motion.div
+          <div
             className="w-full h-full overflow-auto"
             data-node-content="active"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
             style={{
               pointerEvents: 'auto',
               position: 'relative',
@@ -104,11 +96,11 @@ export const CanvasNode = memo(function CanvasNode({
             }}
           >
             {children}
-          </motion.div>
+          </div>
         )}
-      </motion.div>
+      </div>
 
-      {/* ─── Click target for unfocused nodes ─── */}
+      {/* Click target */}
       {!isActive && (
         <div
           className="absolute inset-0"
@@ -117,7 +109,6 @@ export const CanvasNode = memo(function CanvasNode({
             e.stopPropagation();
             onClick();
           }}
-          data-cursor="view"
         />
       )}
     </div>
