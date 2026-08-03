@@ -2,7 +2,7 @@
 
 import { ReactNode } from 'react';
 import { ThemeProvider } from '@/lib/theme';
-import { SmoothScrollProvider } from '@/lib/smooth-scroll';
+import { CameraProvider } from '@/lib/camera';
 import { CustomCursor } from '@/components/ui/CustomCursor';
 import { Navigation } from '@/components/ui/Navigation';
 import { MusicPlayer } from '@/components/ui/MusicPlayer';
@@ -14,12 +14,12 @@ interface ProvidersProps {
 export function Providers({ children }: ProvidersProps) {
   return (
     <ThemeProvider>
-      <SmoothScrollProvider>
+      <CameraProvider>
         <CustomCursor />
         <Navigation />
         <MusicPlayer />
         {children}
-      </SmoothScrollProvider>
+      </CameraProvider>
     </ThemeProvider>
   );
 }

@@ -1,70 +1,47 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useRef } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'motion/react';
+import { useCamera } from '@/lib/camera';
+import { getNodeById } from '@/lib/canvas-config';
 
-interface HeroProps {
-  loaded?: boolean;
-}
+export function Hero() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { navigateToNode } = useCamera();
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
 
-export function Hero({ loaded = true }: HeroProps) {
-  const springConfig = { damping: 25, stiffness: 150 };
-  const mouseX = useSpring(0, springConfig);
-  const mouseY = useSpring(0, springConfig);
+  const springX = useSpring(mouseX, { damping: 25, stiffness: 150 });
+  const springY = useSpring(mouseY, { damping: 25, stiffness: 150 });
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      const x = (e.clientX / window.innerWidth) * 2 - 1;
-      const y = (e.clientY / window.innerHeight) * 2 - 1;
-      mouseX.set(x);
-      mouseY.set(y);
-    };
+  // Parallax layers
+  const sektX = useTransform(springX, [-1, 1], [-15, 15]);
+  const sektY = useTransform(springY, [-1, 1], [-10, 10]);
+  const studioX = useTransform(springX, [-1, 1], [30, -30]);
+  const studioY = useTransform(springY, [-1, 1], [20, -20]);
 
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [mouseX, mouseY]);
-
-  // SEKT moves slowly
-  const sektX = useTransform(mouseX, [-1, 1], [-15, 15]);
-  const sektY = useTransform(mouseY, [-1, 1], [-10, 10]);
-
-  // STUDIO moves faster and opposite for depth
-  const studioX = useTransform(mouseX, [-1, 1], [30, -30]);
-  const studioY = useTransform(mouseY, [-1, 1], [20, -20]);
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.15,
-        delayChildren: 0.3,
-        ease: [0.16, 1, 0.3, 1] as const,
-      },
-    },
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    const ny = ((e.clientY - rect.top) / rect.height) * 2 - 1;
+    mouseX.set(nx);
+    mouseY.set(ny);
   };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 60 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 1,
-        ease: [0.16, 1, 0.3, 1] as const,
-      },
-    },
+  const handleEnter = () => {
+    const aboutNode = getNodeById('about');
+    if (aboutNode) navigateToNode(aboutNode);
   };
 
   return (
-    <section
-      className="relative w-full overflow-hidden flex flex-col justify-center select-none"
-      style={{
-        height: '100dvh',
-        backgroundColor: 'var(--color-bg-primary)',
-      }}
+    <div
+      ref={containerRef}
+      className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden"
+      style={{ backgroundColor: 'var(--color-bg-primary)' }}
+      onMouseMove={handleMouseMove}
     >
-      {/* Background Gradient */}
+      {/* Radial background */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -73,105 +50,80 @@ export function Hero({ loaded = true }: HeroProps) {
         }}
       />
 
-      {/* Main Typography */}
-      <motion.div
-        className="relative z-10 w-full flex flex-col items-start"
-        style={{ padding: '0 var(--grid-margin)' }}
-        variants={containerVariants}
-        initial="hidden"
-        animate={loaded ? 'visible' : 'hidden'}
+      {/* SEKT */}
+      <motion.h1
+        className="font-display font-bold uppercase leading-none tracking-tighter relative"
+        style={{
+          fontSize: 'clamp(5rem, 18vw, 20rem)',
+          letterSpacing: '-0.05em',
+          color: 'var(--color-text-primary)',
+          x: sektX,
+          y: sektY,
+        }}
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
       >
-        {/* SEKT */}
-        <div className="overflow-hidden w-full">
-          <motion.div variants={itemVariants} style={{ x: sektX, y: sektY }}>
-            <h1
-              className="font-display font-bold leading-none tracking-tighter"
-              style={{
-                fontSize: 'clamp(5rem, 18vw, 20rem)',
-                letterSpacing: '-0.05em',
-                color: 'var(--color-text-primary)',
-              }}
-            >
-              SEKT
-            </h1>
-          </motion.div>
-        </div>
+        SEKT
+      </motion.h1>
 
-        {/* STUDIO */}
-        <div className="overflow-hidden w-full flex justify-end">
-          <motion.div variants={itemVariants} style={{ x: studioX, y: studioY }}>
-            <span
-              className="font-display font-bold leading-none tracking-tighter block"
-              style={{
-                fontSize: 'clamp(3rem, 12vw, 14rem)',
-                letterSpacing: '-0.04em',
-                color: 'var(--color-text-primary)',
-                opacity: 0.9,
-              }}
-            >
-              STUDIO
-            </span>
-          </motion.div>
-        </div>
-      </motion.div>
+      {/* STUDIO */}
+      <motion.span
+        className="font-display font-light uppercase leading-none tracking-tight block relative"
+        style={{
+          fontSize: 'clamp(3rem, 12vw, 14rem)',
+          opacity: 0.9,
+          color: 'var(--color-text-primary)',
+          x: studioX,
+          y: studioY,
+        }}
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 0.9, y: 0 }}
+        transition={{ duration: 1.2, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+      >
+        STUDIO
+      </motion.span>
 
-      {/* Bottom Left — Tagline */}
-      <motion.div
-        className="absolute bottom-8 left-0 z-20"
-        style={{ paddingLeft: 'var(--grid-margin)' }}
+      {/* Enter CTA */}
+      <motion.button
+        className="absolute bottom-[15%] font-mono uppercase tracking-[0.4em] cursor-pointer"
+        style={{
+          fontSize: '10px',
+          color: 'var(--color-text-muted)',
+          padding: '12px 28px',
+          border: '1px solid var(--color-border)',
+          borderRadius: '50px',
+          backgroundColor: 'transparent',
+          pointerEvents: 'auto',
+          transition: 'border-color 0.4s ease, color 0.4s ease',
+          zIndex: 10,
+        }}
+        onClick={handleEnter}
+        data-cursor="pointer"
+        whileHover={{
+          borderColor: 'var(--color-text-secondary)',
+          color: 'var(--color-text-primary)',
+        }}
         initial={{ opacity: 0, y: 20 }}
-        animate={loaded ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-        transition={{ delay: 1, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
       >
-        <p
-          className="font-mono uppercase tracking-widest leading-relaxed"
-          style={{
-            fontSize: 'var(--text-micro)',
-            color: 'var(--color-text-secondary)',
-            maxWidth: '200px',
-          }}
-        >
-          Multidisciplinary<br />Creative Collective
-        </p>
-      </motion.div>
+        Enter
+      </motion.button>
 
-      {/* Bottom Right — Scroll Indicator */}
-      <motion.div
-        className="absolute bottom-8 right-0 z-20 flex flex-col items-center gap-4"
-        style={{ paddingRight: 'var(--grid-margin)' }}
+      {/* Tagline */}
+      <motion.p
+        className="absolute bottom-[8%] font-mono uppercase tracking-widest"
+        style={{
+          fontSize: 'var(--text-micro)',
+          color: 'var(--color-text-muted)',
+        }}
         initial={{ opacity: 0 }}
-        animate={loaded ? { opacity: 1 } : { opacity: 0 }}
-        transition={{ delay: 1.2, duration: 0.8 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8, delay: 0.8 }}
       >
-        <span
-          className="font-mono uppercase tracking-widest"
-          style={{
-            fontSize: 'var(--text-micro)',
-            color: 'var(--color-text-secondary)',
-            writingMode: 'vertical-rl',
-          }}
-        >
-          Scroll
-        </span>
-        <div className="relative overflow-hidden" style={{ width: '1px', height: '64px' }}>
-          <div
-            className="absolute inset-0"
-            style={{ backgroundColor: 'var(--color-text-muted)', opacity: 0.3 }}
-          />
-          <motion.div
-            className="absolute top-0 left-0 w-full origin-top"
-            style={{ backgroundColor: 'var(--color-text-primary)' }}
-            initial={{ scaleY: 0, height: '100%' }}
-            animate={{ scaleY: [0, 1, 1, 0] }}
-            transition={{
-              duration: 2.5,
-              repeat: Infinity,
-              ease: 'easeInOut',
-              times: [0, 0.4, 0.6, 1],
-            }}
-          />
-        </div>
-      </motion.div>
-    </section>
+        Multidisciplinary Creative Collective
+      </motion.p>
+    </div>
   );
 }

@@ -322,7 +322,7 @@ export function MusicPlayer() {
     `${String(Math.floor(s / 60)).padStart(1, '0')}:${String(s % 60).padStart(2, '0')}`;
 
   return (
-    <div className="fixed bottom-6 right-6 z-[90] flex flex-col items-end gap-2">
+    <div className="fixed bottom-6 left-6 z-[90] flex flex-col items-start gap-2">
       {/* Track Menu */}
       <AnimatePresence>
         {isMenuOpen && (
