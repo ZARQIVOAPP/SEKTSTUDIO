@@ -31,6 +31,7 @@ export function CanvasWorld() {
     cameraRef,
     containerRef,
     activeNodeId,
+    setActiveNodeId,
     navigateToNode,
     applyTransform,
   } = useCamera();
@@ -41,6 +42,12 @@ export function CanvasWorld() {
   const pointerStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
   const overviewZoomRef = useRef<number>(CAMERA_DEFAULTS.minZoom);
   const overviewPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const isMobileRef = useRef(false);
+
+  // Detect mobile once on mount
+  useEffect(() => {
+    isMobileRef.current = window.innerWidth < 768;
+  }, []);
 
   // ─── Clamp camera + center at overview zoom ───
   const clampCamera = useCallback(() => {
@@ -123,7 +130,9 @@ export function CanvasWorld() {
     (e: React.PointerEvent) => {
       const target = e.target as HTMLElement;
       if (target.closest('[data-node-content="active"]')) return;
+      if (target.closest('[data-mobile-overlay]')) return;
 
+      e.preventDefault();
       const cam = cameraRef.current;
       cam.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
@@ -152,6 +161,7 @@ export function CanvasWorld() {
       cam.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
       if (cam.pointers.size === 2) {
+        e.preventDefault();
         const pts = Array.from(cam.pointers.values());
         const dist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
         const centerX = (pts[0].x + pts[1].x) / 2;
@@ -207,11 +217,21 @@ export function CanvasWorld() {
         if (start) {
           const dist = Math.hypot(e.clientX - start.x, e.clientY - start.y);
           const elapsed = performance.now() - start.time;
-          if (dist < 8 && elapsed < 500) {
-            const nodeId = findNodeAtPosition(e.clientX, e.clientY);
-            if (nodeId && nodeId !== activeNodeId) {
-              const node = getNodeById(nodeId);
-              if (node) navigateToNode(node);
+          if (dist < 12 && elapsed < 600) {
+            // On mobile, use the mobile overlay instead of canvas zoom
+            if (isMobileRef.current) {
+              const nodeId = findNodeAtPosition(e.clientX, e.clientY);
+              if (nodeId) {
+                e.preventDefault();
+                e.stopPropagation();
+                setActiveNodeId(nodeId);
+              }
+            } else {
+              const nodeId = findNodeAtPosition(e.clientX, e.clientY);
+              if (nodeId && nodeId !== activeNodeId) {
+                const node = getNodeById(nodeId);
+                if (node) navigateToNode(node);
+              }
             }
           }
           pointerStartRef.current = null;
@@ -224,10 +244,10 @@ export function CanvasWorld() {
         cam.lastPointerY = remaining.y;
       }
     },
-    [cameraRef, startDecay, findNodeAtPosition, activeNodeId, navigateToNode],
+    [cameraRef, startDecay, findNodeAtPosition, activeNodeId, navigateToNode, setActiveNodeId],
   );
 
-  // ─── Wheel: trackpad pan/pinch + mouse zoom ───
+  // ─── Wheel ───
   const handleWheel = useCallback(
     (e: WheelEvent) => {
       const target = e.target as HTMLElement;
@@ -280,6 +300,27 @@ export function CanvasWorld() {
     return () => el.removeEventListener('wheel', handleWheel);
   }, [handleWheel]);
 
+  // ─── Prevent touch-based page refresh/navigation on mobile ───
+  useEffect(() => {
+    const el = outerRef.current;
+    if (!el) return;
+
+    const preventDefaults = (e: TouchEvent) => {
+      if ((e.target as HTMLElement).closest('[data-mobile-overlay]')) return;
+      if ((e.target as HTMLElement).closest('[data-node-content="active"]')) return;
+      if (e.touches.length >= 1) {
+        e.preventDefault();
+      }
+    };
+
+    el.addEventListener('touchstart', preventDefaults, { passive: false });
+    el.addEventListener('touchmove', preventDefaults, { passive: false });
+    return () => {
+      el.removeEventListener('touchstart', preventDefaults);
+      el.removeEventListener('touchmove', preventDefaults);
+    };
+  }, []);
+
   // ─── Initial camera: responsive overview ───
   useEffect(() => {
     const cam = cameraRef.current;
@@ -312,11 +353,24 @@ export function CanvasWorld() {
   // ─── Navigate to node ───
   const handleNodeClick = useCallback(
     (nodeId: string) => {
-      const node = getNodeById(nodeId);
-      if (node) navigateToNode(node);
+      if (isMobileRef.current) {
+        setActiveNodeId(nodeId);
+      } else {
+        const node = getNodeById(nodeId);
+        if (node) navigateToNode(node);
+      }
     },
-    [navigateToNode],
+    [navigateToNode, setActiveNodeId],
   );
+
+  // ─── Close mobile overlay ───
+  const closeMobileOverlay = useCallback(() => {
+    setActiveNodeId(null);
+  }, [setActiveNodeId]);
+
+  // Get the active node's section component for mobile overlay
+  const activeSection = activeNodeId ? SECTION_COMPONENTS[activeNodeId] : null;
+  const activeNode = activeNodeId ? getNodeById(activeNodeId) : null;
 
   return (
     <div
@@ -355,7 +409,7 @@ export function CanvasWorld() {
           <CanvasNode
             key={node.id}
             node={node}
-            isActive={activeNodeId === node.id}
+            isActive={!isMobileRef.current && activeNodeId === node.id}
             onClick={() => handleNodeClick(node.id)}
           >
             {SECTION_COMPONENTS[node.id] ? (
@@ -365,10 +419,56 @@ export function CanvasWorld() {
         ))}
       </div>
 
-      {/* Minimap — hidden on mobile */}
-      <div className="hidden sm:block">
-        <Minimap onNodeClick={handleNodeClick} />
-      </div>
+      {/* ─── Mobile Fullscreen Overlay ─── */}
+      {isMobileRef.current && activeNodeId && activeSection && activeNode && (
+        <div
+          data-mobile-overlay
+          className="fixed inset-0 z-[100] flex flex-col"
+          style={{
+            backgroundColor: 'var(--color-bg-primary)',
+            touchAction: 'pan-y',
+          }}
+        >
+          {/* Close bar */}
+          <div
+            className="flex items-center justify-between px-4 py-3 flex-shrink-0"
+            style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
+          >
+            <div className="flex items-center gap-2">
+              <span className="font-mono uppercase tracking-widest" style={{ fontSize: '9px', color: 'var(--color-text-muted)' }}>
+                {activeNode.sectionIndex}
+              </span>
+              <span className="font-display font-bold uppercase" style={{ fontSize: '13px', color: 'var(--color-text-primary)' }}>
+                {activeNode.label}
+              </span>
+            </div>
+            <button
+              onClick={closeMobileOverlay}
+              className="flex items-center justify-center rounded-full"
+              style={{
+                width: 32,
+                height: 32,
+                backgroundColor: 'rgba(255,255,255,0.06)',
+                color: 'var(--color-text-primary)',
+                fontSize: '16px',
+              }}
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Section content — scrollable, phone width */}
+          <div
+            className="flex-1 overflow-y-auto overflow-x-hidden"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+          >
+            {(() => { const C = activeSection; return <C />; })()}
+          </div>
+        </div>
+      )}
+
+      {/* Minimap */}
+      <Minimap onNodeClick={handleNodeClick} />
     </div>
   );
 }
