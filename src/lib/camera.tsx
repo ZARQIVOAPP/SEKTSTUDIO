@@ -17,7 +17,6 @@ export interface CameraRef {
   lastPointerX: number;
   lastPointerY: number;
   lastMoveTime: number;
-  // Pinch zoom
   pinchStartDist: number;
   pinchStartZoom: number;
   pointers: Map<number, { x: number; y: number }>;
@@ -69,7 +68,7 @@ export function CameraProvider({ children }: { children: ReactNode }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
 
-  // Apply CSS transform directly to DOM — bypasses React render
+  // Apply CSS transform directly to DOM
   const applyTransform = useCallback(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -77,23 +76,27 @@ export function CameraProvider({ children }: { children: ReactNode }) {
     el.style.transform = `translate(${x}px, ${y}px) scale(${zoom})`;
   }, []);
 
-  // Cinematic fly-to node
+  // Cinematic fly-to node — responsive zoom
   const navigateToNode = useCallback(
     (node: NodeConfig) => {
       const cam = cameraRef.current;
       const center = getNodeCenter(node);
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      const targetZoom = node.focusZoom;
+
+      // On mobile, calculate zoom to fit the node within the viewport
+      // On desktop, use the predefined focusZoom
+      const isMobile = vw < 768;
+      const targetZoom = isMobile
+        ? Math.min(vw / node.width, vh / node.height) * 0.92
+        : node.focusZoom;
 
       const targetX = vw / 2 - center.x * targetZoom;
       const targetY = vh / 2 - center.y * targetZoom;
 
-      // Kill momentum
       cam.vx = 0;
       cam.vy = 0;
 
-      // Animate with GSAP
       gsap.to(cam, {
         x: targetX,
         y: targetY,
@@ -104,19 +107,17 @@ export function CameraProvider({ children }: { children: ReactNode }) {
         onComplete: () => setActiveNodeId(node.id),
       });
 
-      // Set active immediately for visual feedback
       setActiveNodeId(node.id);
     },
     [applyTransform],
   );
 
-  // Fly to overview (show all nodes)
+  // Fly to overview
   const navigateToOverview = useCallback(() => {
     const cam = cameraRef.current;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
-    // Calculate zoom to fit all nodes with padding
     const padding = 400;
     const overviewZoom = Math.min(
       vw / (7200 + padding * 2),
@@ -125,7 +126,7 @@ export function CameraProvider({ children }: { children: ReactNode }) {
     );
 
     const targetX = vw / 2 - 3500 * overviewZoom;
-    const targetY = vw / 2 - 1800 * overviewZoom;
+    const targetY = vh / 2 - 1800 * overviewZoom;
 
     cam.vx = 0;
     cam.vy = 0;

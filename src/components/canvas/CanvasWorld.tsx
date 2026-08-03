@@ -1,12 +1,11 @@
 'use client';
 
-import { useEffect, useCallback, useRef, useState } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useCamera } from '@/lib/camera';
 import { CAMERA_DEFAULTS, NODES, getNodeById, getCanvasBounds } from '@/lib/canvas-config';
 import { CanvasNode } from './CanvasNode';
 import { ConnectionPaths } from './ConnectionPaths';
 import { Minimap } from './Minimap';
-import { motion, AnimatePresence } from 'motion/react';
 
 // Section imports
 import { Hero } from '@/components/sections/Hero';
@@ -42,7 +41,6 @@ export function CanvasWorld() {
   const pointerStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
   const overviewZoomRef = useRef<number>(CAMERA_DEFAULTS.minZoom);
   const overviewPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [showDock, setShowDock] = useState(true);
 
   // ─── Clamp camera + center at overview zoom ───
   const clampCamera = useCallback(() => {
@@ -52,7 +50,6 @@ export function CanvasWorld() {
     const bounds = getCanvasBounds();
     const pad = 200;
 
-    // At overview zoom, snap to centered position
     if (cam.zoom <= overviewZoomRef.current * 1.05) {
       cam.zoom = overviewZoomRef.current;
       cam.x = overviewPosRef.current.x;
@@ -103,7 +100,7 @@ export function CanvasWorld() {
     rafRef.current = requestAnimationFrame(decay);
   }, [cameraRef, applyTransform, clampCamera]);
 
-  // ─── Hit test helpers ───
+  // ─── Hit test ───
   const findNodeAtPosition = useCallback(
     (clientX: number, clientY: number): string | null => {
       const cam = cameraRef.current;
@@ -230,7 +227,7 @@ export function CanvasWorld() {
     [cameraRef, startDecay, findNodeAtPosition, activeNodeId, navigateToNode],
   );
 
-  // ─── Wheel: trackpad pan/pinch + mouse wheel zoom ───
+  // ─── Wheel: trackpad pan/pinch + mouse zoom ───
   const handleWheel = useCallback(
     (e: WheelEvent) => {
       const target = e.target as HTMLElement;
@@ -239,7 +236,6 @@ export function CanvasWorld() {
       e.preventDefault();
       const cam = cameraRef.current;
 
-      // Pinch-to-zoom (ctrlKey is set by browser for trackpad pinch)
       if (e.ctrlKey) {
         const zoomDelta = -e.deltaY * 0.008;
         const newZoom = Math.max(
@@ -251,17 +247,14 @@ export function CanvasWorld() {
         cam.y = e.clientY - (e.clientY - cam.y) * zoomRatio;
         cam.zoom = newZoom;
       } else {
-        // Normalize deltaMode (some browsers report in lines not pixels)
         let dx = e.deltaX;
         let dy = e.deltaY;
         if (e.deltaMode === 1) { dx *= 16; dy *= 16; }
 
-        // If horizontal movement: definitely a trackpad pan
         if (Math.abs(dx) > 0.5) {
           cam.x -= dx * 1.2;
           cam.y -= dy * 1.2;
         } else {
-          // Pure vertical = mouse wheel → zoom
           const zoomFactor = dy > 0 ? CAMERA_DEFAULTS.zoomOut : CAMERA_DEFAULTS.zoomIn;
           const newZoom = Math.max(
             overviewZoomRef.current,
@@ -287,18 +280,19 @@ export function CanvasWorld() {
     return () => el.removeEventListener('wheel', handleWheel);
   }, [handleWheel]);
 
-  // ─── Initial camera: overview centered ───
+  // ─── Initial camera: responsive overview ───
   useEffect(() => {
     const cam = cameraRef.current;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const bounds = getCanvasBounds();
-    const pad = 400;
+    const isMobile = vw < 768;
+    const pad = isMobile ? 100 : 400;
 
     const zoom = Math.min(
       vw / (bounds.width + pad * 2),
       vh / (bounds.height + pad * 2),
-      0.18,
+      isMobile ? 0.06 : 0.18,
     );
 
     const cx = bounds.minX + bounds.width / 2;
@@ -323,43 +317,6 @@ export function CanvasWorld() {
     },
     [navigateToNode],
   );
-
-  // ─── Return to overview ───
-  const returnToOverview = useCallback(() => {
-    const cam = cameraRef.current;
-    const target = overviewPosRef.current;
-    const targetZoom = overviewZoomRef.current;
-
-    // Animate to overview
-    const startX = cam.x, startY = cam.y, startZoom = cam.zoom;
-    const startTime = performance.now();
-    const duration = 1200;
-
-    const ease = (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-
-    const animate = () => {
-      const elapsed = performance.now() - startTime;
-      const t = ease(Math.min(1, elapsed / duration));
-
-      cam.x = startX + (target.x - startX) * t;
-      cam.y = startY + (target.y - startY) * t;
-      cam.zoom = startZoom + (targetZoom - startZoom) * t;
-      applyTransform();
-
-      if (t < 1) requestAnimationFrame(animate);
-    };
-    requestAnimationFrame(animate);
-  }, [cameraRef, applyTransform]);
-
-  // Show/hide dock based on zoom level
-  useEffect(() => {
-    const check = () => {
-      const cam = cameraRef.current;
-      setShowDock(cam.zoom < overviewZoomRef.current * 3);
-    };
-    const interval = setInterval(check, 300);
-    return () => clearInterval(interval);
-  }, [cameraRef]);
 
   return (
     <div
@@ -408,62 +365,10 @@ export function CanvasWorld() {
         ))}
       </div>
 
-      {/* ─── Node Navigation Dock ─── */}
-      <AnimatePresence>
-        {showDock && (
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 30 }}
-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[70] flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 rounded-full backdrop-blur-xl"
-            style={{
-              backgroundColor: 'rgba(17,17,17,0.75)',
-              border: '1px solid rgba(255,255,255,0.08)',
-            }}
-          >
-            {NODES.map((node) => {
-              const isActive = activeNodeId === node.id;
-              return (
-                <button
-                  key={node.id}
-                  onClick={() => handleNodeClick(node.id)}
-                  className="relative font-mono uppercase tracking-wider transition-all duration-300 rounded-full whitespace-nowrap"
-                  style={{
-                    fontSize: '8px',
-                    padding: isActive ? '6px 14px' : '6px 10px',
-                    color: isActive ? 'var(--color-bg-primary)' : 'rgba(255,255,255,0.5)',
-                    backgroundColor: isActive ? 'var(--color-text-primary)' : 'transparent',
-                    border: isActive ? 'none' : '1px solid rgba(255,255,255,0.1)',
-                  }}
-                >
-                  {node.label}
-                </button>
-              );
-            })}
-
-            {/* Overview button */}
-            {activeNodeId && (
-              <button
-                onClick={returnToOverview}
-                className="font-mono uppercase tracking-wider rounded-full transition-all duration-300 ml-1"
-                style={{
-                  fontSize: '8px',
-                  padding: '6px 10px',
-                  color: 'var(--color-accent)',
-                  border: '1px solid var(--color-accent)',
-                  backgroundColor: 'transparent',
-                }}
-              >
-                ← ALL
-              </button>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Minimap */}
-      <Minimap onNodeClick={handleNodeClick} />
+      {/* Minimap — hidden on mobile */}
+      <div className="hidden sm:block">
+        <Minimap onNodeClick={handleNodeClick} />
+      </div>
     </div>
   );
 }
