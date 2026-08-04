@@ -6,7 +6,7 @@ import { CAMERA_DEFAULTS, NODES, getNodeById, getCanvasBounds } from '@/lib/canv
 import { CanvasNode } from './CanvasNode';
 import { ConnectionPaths } from './ConnectionPaths';
 import { Minimap } from './Minimap';
-import { motion, AnimatePresence } from 'motion/react';
+
 // Section imports
 import { Hero } from '@/components/sections/Hero';
 import { About } from '@/components/sections/About';
@@ -31,7 +31,6 @@ export function CanvasWorld() {
     cameraRef,
     containerRef,
     activeNodeId,
-    setActiveNodeId,
     navigateToNode,
     applyTransform,
   } = useCamera();
@@ -42,19 +41,14 @@ export function CanvasWorld() {
   const pointerStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
   const overviewZoomRef = useRef<number>(CAMERA_DEFAULTS.minZoom);
   const overviewPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-  const isMobileRef = useRef(false);
-
-  // Detect mobile once on mount
-  useEffect(() => {
-    isMobileRef.current = window.innerWidth < 768;
-  }, []);
 
   // ─── Clamp camera + center at overview zoom ───
   const clampCamera = useCallback(() => {
     const cam = cameraRef.current;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const bounds = getCanvasBounds();
+    const isMobile = vw < 768;
+    const bounds = getCanvasBounds(isMobile);
     const pad = 200;
 
     if (cam.zoom <= overviewZoomRef.current * 1.05) {
@@ -113,10 +107,15 @@ export function CanvasWorld() {
       const cam = cameraRef.current;
       const canvasX = (clientX - cam.x) / cam.zoom;
       const canvasY = (clientY - cam.y) / cam.zoom;
+      const isMobile = window.innerWidth < 768;
 
       for (const node of NODES) {
-        if (canvasX >= node.x && canvasX <= node.x + node.width &&
-            canvasY >= node.y && canvasY <= node.y + node.height) {
+        const x = isMobile ? node.mobileX : node.x;
+        const y = isMobile ? node.mobileY : node.y;
+        const w = isMobile ? node.mobileWidth : node.width;
+        const h = isMobile ? node.mobileHeight : node.height;
+
+        if (canvasX >= x && canvasX <= x + w && canvasY >= y && canvasY <= y + h) {
           return node.id;
         }
       }
@@ -130,7 +129,6 @@ export function CanvasWorld() {
     (e: React.PointerEvent) => {
       const target = e.target as HTMLElement;
       if (target.closest('[data-node-content="active"]')) return;
-      if (target.closest('[data-mobile-overlay]')) return;
 
       const cam = cameraRef.current;
       cam.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -216,20 +214,10 @@ export function CanvasWorld() {
           const dist = Math.hypot(e.clientX - start.x, e.clientY - start.y);
           const elapsed = performance.now() - start.time;
           if (dist < 12 && elapsed < 600) {
-            // On mobile, use the mobile overlay instead of canvas zoom
-            if (isMobileRef.current) {
-              const nodeId = findNodeAtPosition(e.clientX, e.clientY);
-              if (nodeId) {
-                e.preventDefault();
-                e.stopPropagation();
-                setActiveNodeId(nodeId);
-              }
-            } else {
-              const nodeId = findNodeAtPosition(e.clientX, e.clientY);
-              if (nodeId && nodeId !== activeNodeId) {
-                const node = getNodeById(nodeId);
-                if (node) navigateToNode(node);
-              }
+            const nodeId = findNodeAtPosition(e.clientX, e.clientY);
+            if (nodeId && nodeId !== activeNodeId) {
+              const node = getNodeById(nodeId);
+              if (node) navigateToNode(node);
             }
           }
           pointerStartRef.current = null;
@@ -242,7 +230,7 @@ export function CanvasWorld() {
         cam.lastPointerY = remaining.y;
       }
     },
-    [cameraRef, startDecay, findNodeAtPosition, activeNodeId, navigateToNode, setActiveNodeId],
+    [cameraRef, startDecay, findNodeAtPosition, activeNodeId, navigateToNode],
   );
 
   // ─── Wheel ───
@@ -298,24 +286,19 @@ export function CanvasWorld() {
     return () => el.removeEventListener('wheel', handleWheel);
   }, [handleWheel]);
 
-  // ─── Prevent touch-based page refresh/navigation on mobile ───
+  // ─── Prevent touch browser gestures ───
   useEffect(() => {
     const el = outerRef.current;
     if (!el) return;
-
-    const preventDefaults = (e: TouchEvent) => {
-      if ((e.target as HTMLElement).closest('[data-mobile-overlay]')) return;
+    const prevent = (e: TouchEvent) => {
       if ((e.target as HTMLElement).closest('[data-node-content="active"]')) return;
-      if (e.touches.length >= 1) {
-        e.preventDefault();
-      }
+      if (e.touches.length >= 1) e.preventDefault();
     };
-
-    el.addEventListener('touchstart', preventDefaults, { passive: false });
-    el.addEventListener('touchmove', preventDefaults, { passive: false });
+    el.addEventListener('touchstart', prevent, { passive: false });
+    el.addEventListener('touchmove', prevent, { passive: false });
     return () => {
-      el.removeEventListener('touchstart', preventDefaults);
-      el.removeEventListener('touchmove', preventDefaults);
+      el.removeEventListener('touchstart', prevent);
+      el.removeEventListener('touchmove', prevent);
     };
   }, []);
 
@@ -324,14 +307,14 @@ export function CanvasWorld() {
     const cam = cameraRef.current;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const bounds = getCanvasBounds();
     const isMobile = vw < 768;
-    const pad = isMobile ? 100 : 400;
+    const bounds = getCanvasBounds(isMobile);
+    const pad = isMobile ? 150 : 400;
 
     const zoom = Math.min(
       vw / (bounds.width + pad * 2),
       vh / (bounds.height + pad * 2),
-      isMobile ? 0.06 : 0.18,
+      isMobile ? 0.5 : 0.18,
     );
 
     const cx = bounds.minX + bounds.width / 2;
@@ -404,10 +387,8 @@ export function CanvasWorld() {
         ))}
       </div>
 
-      {/* Minimap */}
-      <div className="hidden sm:block">
-        <Minimap onNodeClick={handleNodeClick} />
-      </div>
+      {/* Minimap — always visible */}
+      <Minimap onNodeClick={handleNodeClick} />
     </div>
   );
 }

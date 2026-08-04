@@ -1,7 +1,7 @@
 'use client';
 
-import { type ReactNode, memo } from 'react';
-import type { NodeConfig } from '@/lib/canvas-config';
+import { type ReactNode, memo, useEffect, useState } from 'react';
+import { getNodeLayout, type NodeConfig } from '@/lib/canvas-config';
 
 interface CanvasNodeProps {
   node: NodeConfig;
@@ -16,20 +16,27 @@ export const CanvasNode = memo(function CanvasNode({
   onClick,
   children,
 }: CanvasNodeProps) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+  }, []);
+
+  const layout = getNodeLayout(node, isMobile);
+
   return (
     <div
-      className="absolute transition-all duration-300"
+      className="absolute"
       style={{
-        left: node.x + node.width / 2,
-        top: node.y + node.height / 2,
-        transform: 'translate(-50%, -50%)',
+        left: layout.x,
+        top: layout.y,
+        width: layout.width,
+        height: layout.height,
       }}
     >
       <div
-        className="relative w-[360px] h-[680px] md:w-[var(--desktop-w)] md:h-[var(--desktop-h)]"
+        className="relative w-full h-full"
         style={{
-          '--desktop-w': `${node.width}px`,
-          '--desktop-h': `${node.height}px`,
           border: isActive
             ? '6px solid var(--color-text-primary)'
             : '4px solid var(--color-text-secondary)',
@@ -40,7 +47,7 @@ export const CanvasNode = memo(function CanvasNode({
             : '0 0 50px rgba(255,255,255,0.1), 0 0 0 2px var(--color-text-secondary)',
           transition: 'opacity 0.6s ease, border-color 0.4s ease, box-shadow 0.6s ease',
           overflow: 'hidden',
-        } as React.CSSProperties}
+        }}
       >
         {/* ─── Node Label ─── */}
         <div
@@ -52,11 +59,11 @@ export const CanvasNode = memo(function CanvasNode({
           }}
         >
           <span
-            className="font-mono uppercase tracking-[0.5em] block"
+            className="font-mono uppercase tracking-[0.3em] sm:tracking-[0.5em] block"
             style={{
-              fontSize: '22px',
+              fontSize: isMobile ? '12px' : '22px',
               color: 'var(--color-text-secondary)',
-              marginBottom: '20px',
+              marginBottom: isMobile ? '12px' : '20px',
             }}
           >
             {node.sectionIndex}
@@ -65,10 +72,11 @@ export const CanvasNode = memo(function CanvasNode({
           <span
             className="font-display font-bold uppercase tracking-tight"
             style={{
-              fontSize: 'clamp(3.5rem, 7vw, 8rem)',
+              fontSize: isMobile ? 'clamp(1.5rem, 8vw, 2.5rem)' : 'clamp(3.5rem, 7vw, 8rem)',
               color: 'var(--color-text-primary)',
               lineHeight: 1,
               textAlign: 'center',
+              padding: isMobile ? '0 12px' : 0,
             }}
           >
             {node.label}
@@ -76,10 +84,10 @@ export const CanvasNode = memo(function CanvasNode({
 
           <div
             style={{
-              width: '60px',
-              height: '3px',
+              width: isMobile ? '30px' : '60px',
+              height: isMobile ? '2px' : '3px',
               backgroundColor: 'var(--color-accent)',
-              marginTop: '24px',
+              marginTop: isMobile ? '14px' : '24px',
             }}
           />
         </div>

@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useRef, useCallback, useState, ReactNode } from 'react';
 import { gsap } from 'gsap';
-import { CAMERA_DEFAULTS, getNodeCenter, type NodeConfig } from './canvas-config';
+import { CAMERA_DEFAULTS, getNodeCenter, getNodeLayout, type NodeConfig } from './canvas-config';
 
 // ─────────────────────────────────────────────
 // Camera State (ref-based for 60fps)
@@ -68,7 +68,6 @@ export function CameraProvider({ children }: { children: ReactNode }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
 
-  // Apply CSS transform directly to DOM
   const applyTransform = useCallback(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -80,15 +79,16 @@ export function CameraProvider({ children }: { children: ReactNode }) {
   const navigateToNode = useCallback(
     (node: NodeConfig) => {
       const cam = cameraRef.current;
-      const center = getNodeCenter(node);
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-
-      // On mobile, calculate zoom to fit the node within the viewport
-      // On desktop, use the predefined focusZoom
       const isMobile = vw < 768;
+
+      const center = getNodeCenter(node, isMobile);
+      const layout = getNodeLayout(node, isMobile);
+
+      // Calculate zoom to fit the node in the viewport
       const targetZoom = isMobile
-        ? Math.min(vw / 360, vh / 680) * 0.92
+        ? Math.min(vw / layout.width, vh / layout.height) * 0.92
         : node.focusZoom;
 
       const targetX = vw / 2 - center.x * targetZoom;

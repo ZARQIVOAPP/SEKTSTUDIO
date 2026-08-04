@@ -1,41 +1,55 @@
 'use client';
 
-import { memo } from 'react';
-import { NODES, CONNECTIONS, getNodeCenter, getNodeById } from '@/lib/canvas-config';
+import { memo, useEffect, useState, useMemo } from 'react';
+import { NODES, CONNECTIONS, getNodeCenter, getNodeById, getNodeLayout } from '@/lib/canvas-config';
 
 interface ConnectionPathsProps {
   activeNodeId: string | null;
 }
 
-// Pre-compute all paths at module level
-const COMPUTED_PATHS = CONNECTIONS.map((conn) => {
-  const fromNode = getNodeById(conn.from);
-  const toNode = getNodeById(conn.to);
-  if (!fromNode || !toNode) return null;
-
-  const fc = getNodeCenter(fromNode);
-  const tc = getNodeCenter(toNode);
-  const dx = tc.x - fc.x;
-  const dy = tc.y - fc.y;
-  const mx = (fc.x + tc.x) / 2;
-  const my = (fc.y + tc.y) / 2;
-  const perpX = -dy * 0.15;
-  const perpY = dx * 0.15;
-
-  return {
-    id: conn.id,
-    from: conn.from,
-    to: conn.to,
-    d: `M ${fc.x} ${fc.y} Q ${mx + perpX} ${my + perpY}, ${tc.x} ${tc.y}`,
-  };
-}).filter(Boolean) as { id: string; from: string; to: string; d: string }[];
-
-const NODE_DOTS = NODES.map((node) => ({
-  id: node.id,
-  ...getNodeCenter(node),
-}));
-
 const ConnectionPaths = memo(({ activeNodeId }: ConnectionPathsProps) => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+  }, []);
+
+  // Compute paths based on screen size
+  const paths = useMemo(() => {
+    return CONNECTIONS.map((conn) => {
+      const fromNode = getNodeById(conn.from);
+      const toNode = getNodeById(conn.to);
+      if (!fromNode || !toNode) return null;
+
+      const fc = getNodeCenter(fromNode, isMobile);
+      const tc = getNodeCenter(toNode, isMobile);
+      const dx = tc.x - fc.x;
+      const dy = tc.y - fc.y;
+      const mx = (fc.x + tc.x) / 2;
+      const my = (fc.y + tc.y) / 2;
+      const perpX = -dy * 0.15;
+      const perpY = dx * 0.15;
+
+      return {
+        id: conn.id,
+        from: conn.from,
+        to: conn.to,
+        d: `M ${fc.x} ${fc.y} Q ${mx + perpX} ${my + perpY}, ${tc.x} ${tc.y}`,
+      };
+    }).filter(Boolean) as { id: string; from: string; to: string; d: string }[];
+  }, [isMobile]);
+
+  const dots = useMemo(() => {
+    return NODES.map((node) => {
+      const l = getNodeLayout(node, isMobile);
+      return {
+        id: node.id,
+        x: l.x + l.width / 2,
+        y: l.y + l.height / 2,
+      };
+    });
+  }, [isMobile]);
+
   return (
     <svg
       style={{
@@ -48,11 +62,10 @@ const ConnectionPaths = memo(({ activeNodeId }: ConnectionPathsProps) => {
         pointerEvents: 'none',
       }}
     >
-      {COMPUTED_PATHS.map((path) => {
+      {paths.map((path) => {
         const isActive = activeNodeId === path.from || activeNodeId === path.to;
         return (
           <g key={path.id}>
-            {/* Wide glow behind */}
             <path
               d={path.d}
               fill="none"
@@ -60,7 +73,6 @@ const ConnectionPaths = memo(({ activeNodeId }: ConnectionPathsProps) => {
               strokeWidth={isActive ? 10 : 6}
               strokeLinecap="round"
             />
-            {/* Main bold line */}
             <path
               d={path.d}
               fill="none"
@@ -73,8 +85,7 @@ const ConnectionPaths = memo(({ activeNodeId }: ConnectionPathsProps) => {
         );
       })}
 
-      {/* Node junction dots */}
-      {NODE_DOTS.map((dot) => (
+      {dots.map((dot) => (
         <g key={dot.id}>
           <circle
             cx={dot.x}
