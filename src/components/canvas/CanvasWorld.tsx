@@ -127,13 +127,14 @@ export function CanvasWorld() {
   // ─── Pointer Events ───
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.closest('[data-node-content="active"]')) return;
-
       const cam = cameraRef.current;
+      const target = e.target as HTMLElement;
+      const insideNode = !!target.closest('[data-node-content="active"]');
+
+      // Always track pointers (even inside nodes — needed for pinch-to-zoom-out)
       cam.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
-      if (cam.pointers.size === 1) {
+      if (cam.pointers.size === 1 && !insideNode) {
         cam.isDragging = true;
         cam.lastPointerX = e.clientX;
         cam.lastPointerY = e.clientY;
@@ -291,8 +292,16 @@ export function CanvasWorld() {
     const el = outerRef.current;
     if (!el) return;
     const prevent = (e: TouchEvent) => {
-      if ((e.target as HTMLElement).closest('[data-node-content="active"]')) return;
-      if (e.touches.length >= 1) e.preventDefault();
+      const insideNode = (e.target as HTMLElement).closest('[data-node-content="active"]');
+      // Always prevent 2+ finger gestures (pinch zoom is handled by our code)
+      if (e.touches.length >= 2) {
+        e.preventDefault();
+        return;
+      }
+      // Single-finger: allow scroll inside node content, prevent elsewhere
+      if (!insideNode) {
+        e.preventDefault();
+      }
     };
     el.addEventListener('touchstart', prevent, { passive: false });
     el.addEventListener('touchmove', prevent, { passive: false });

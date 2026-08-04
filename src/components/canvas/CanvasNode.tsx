@@ -38,13 +38,17 @@ export const CanvasNode = memo(function CanvasNode({
         className="relative w-full h-full"
         style={{
           border: isActive
-            ? '6px solid var(--color-text-primary)'
-            : '4px solid var(--color-text-secondary)',
+            ? `${isMobile ? '3px' : '6px'} solid var(--color-text-primary)`
+            : `${isMobile ? '2px' : '4px'} solid var(--color-text-secondary)`,
           backgroundColor: 'var(--color-bg-primary)',
           opacity: isActive ? 1 : 0.9,
           boxShadow: isActive
-            ? '0 0 100px rgba(255,255,255,0.15), 0 0 0 3px var(--color-text-primary)'
-            : '0 0 50px rgba(255,255,255,0.1), 0 0 0 2px var(--color-text-secondary)',
+            ? isMobile
+              ? '0 0 40px rgba(255,255,255,0.1), 0 0 0 1px var(--color-text-primary)'
+              : '0 0 100px rgba(255,255,255,0.15), 0 0 0 3px var(--color-text-primary)'
+            : isMobile
+              ? '0 0 20px rgba(255,255,255,0.06), 0 0 0 1px var(--color-text-secondary)'
+              : '0 0 50px rgba(255,255,255,0.1), 0 0 0 2px var(--color-text-secondary)',
           transition: 'opacity 0.6s ease, border-color 0.4s ease, box-shadow 0.6s ease',
           overflow: 'hidden',
         }}
@@ -59,11 +63,12 @@ export const CanvasNode = memo(function CanvasNode({
           }}
         >
           <span
-            className="font-mono uppercase tracking-[0.3em] sm:tracking-[0.5em] block"
+            className="font-mono uppercase block"
             style={{
-              fontSize: isMobile ? '12px' : '22px',
+              fontSize: isMobile ? '10px' : '22px',
+              letterSpacing: isMobile ? '0.2em' : '0.5em',
               color: 'var(--color-text-secondary)',
-              marginBottom: isMobile ? '12px' : '20px',
+              marginBottom: isMobile ? '8px' : '20px',
             }}
           >
             {node.sectionIndex}
@@ -72,11 +77,11 @@ export const CanvasNode = memo(function CanvasNode({
           <span
             className="font-display font-bold uppercase tracking-tight"
             style={{
-              fontSize: isMobile ? 'clamp(1.5rem, 8vw, 2.5rem)' : 'clamp(3.5rem, 7vw, 8rem)',
+              fontSize: isMobile ? '1.4rem' : 'clamp(3.5rem, 7vw, 8rem)',
               color: 'var(--color-text-primary)',
               lineHeight: 1,
               textAlign: 'center',
-              padding: isMobile ? '0 12px' : 0,
+              padding: isMobile ? '0 8px' : 0,
             }}
           >
             {node.label}
@@ -84,10 +89,10 @@ export const CanvasNode = memo(function CanvasNode({
 
           <div
             style={{
-              width: isMobile ? '30px' : '60px',
-              height: isMobile ? '2px' : '3px',
+              width: isMobile ? '24px' : '60px',
+              height: '2px',
               backgroundColor: 'var(--color-accent)',
-              marginTop: isMobile ? '14px' : '24px',
+              marginTop: isMobile ? '10px' : '24px',
             }}
           />
         </div>
