@@ -318,12 +318,12 @@ export function CanvasWorld() {
     const vh = window.innerHeight;
     const isMobile = vw < 768;
     const bounds = getCanvasBounds(isMobile);
-    const pad = isMobile ? 150 : 400;
+    const pad = isMobile ? 80 : 400;
 
     const zoom = Math.min(
       vw / (bounds.width + pad * 2),
       vh / (bounds.height + pad * 2),
-      isMobile ? 0.5 : 0.18,
+      isMobile ? 0.6 : 0.18,
     );
 
     const cx = bounds.minX + bounds.width / 2;

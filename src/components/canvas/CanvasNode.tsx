@@ -38,16 +38,16 @@ export const CanvasNode = memo(function CanvasNode({
         className="relative w-full h-full"
         style={{
           border: isActive
-            ? `${isMobile ? '3px' : '6px'} solid var(--color-text-primary)`
-            : `${isMobile ? '2px' : '4px'} solid var(--color-text-secondary)`,
+            ? `${isMobile ? '2px' : '6px'} solid var(--color-text-primary)`
+            : `${isMobile ? '1px' : '4px'} solid var(--color-text-secondary)`,
           backgroundColor: 'var(--color-bg-primary)',
           opacity: isActive ? 1 : 0.9,
           boxShadow: isActive
             ? isMobile
-              ? '0 0 40px rgba(255,255,255,0.1), 0 0 0 1px var(--color-text-primary)'
+              ? '0 0 20px rgba(255,255,255,0.08)'
               : '0 0 100px rgba(255,255,255,0.15), 0 0 0 3px var(--color-text-primary)'
             : isMobile
-              ? '0 0 20px rgba(255,255,255,0.06), 0 0 0 1px var(--color-text-secondary)'
+              ? '0 0 10px rgba(255,255,255,0.04)'
               : '0 0 50px rgba(255,255,255,0.1), 0 0 0 2px var(--color-text-secondary)',
           transition: 'opacity 0.6s ease, border-color 0.4s ease, box-shadow 0.6s ease',
           overflow: 'hidden',

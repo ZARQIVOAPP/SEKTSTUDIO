@@ -11,7 +11,6 @@ export interface NodeConfig {
   height: number;
   focusZoom: number;
   sectionIndex: string;
-  // Mobile layout overrides
   mobileX: number;
   mobileY: number;
   mobileWidth: number;
@@ -24,60 +23,59 @@ export interface ConnectionConfig {
   to: string;
 }
 
-// Mobile: 340×500 portrait nodes, spaced out in staggered 2-column grid
+// Mobile: 320×450 nodes in a clean 2-column grid with good spacing
 export const NODES: NodeConfig[] = [
   {
     id: 'hero',
     label: 'SEKT STUDIO',
     x: 0, y: 0, width: 1920, height: 1080, focusZoom: 0.52,
     sectionIndex: '000',
-    mobileX: 0, mobileY: 0, mobileWidth: 340, mobileHeight: 500,
+    mobileX: 0, mobileY: 0, mobileWidth: 320, mobileHeight: 450,
   },
   {
     id: 'about',
     label: 'About',
     x: 2800, y: -600, width: 1400, height: 900, focusZoom: 0.65,
     sectionIndex: '001',
-    mobileX: 520, mobileY: -80, mobileWidth: 340, mobileHeight: 500,
+    mobileX: 400, mobileY: 0, mobileWidth: 320, mobileHeight: 450,
   },
   {
     id: 'works',
     label: 'Works',
     x: 3200, y: 600, width: 2000, height: 1400, focusZoom: 0.48,
     sectionIndex: '002',
-    mobileX: 80, mobileY: 700, mobileWidth: 340, mobileHeight: 500,
+    mobileX: 50, mobileY: 560, mobileWidth: 320, mobileHeight: 450,
   },
   {
     id: 'services',
     label: 'Services',
     x: 5800, y: -300, width: 1200, height: 1000, focusZoom: 0.7,
     sectionIndex: '003',
-    mobileX: 520, mobileY: 780, mobileWidth: 340, mobileHeight: 500,
+    mobileX: 400, mobileY: 560, mobileWidth: 320, mobileHeight: 450,
   },
   {
     id: 'process',
     label: 'Process',
     x: 4200, y: 2400, width: 2800, height: 700, focusZoom: 0.45,
     sectionIndex: '004',
-    mobileX: 0, mobileY: 1480, mobileWidth: 340, mobileHeight: 500,
+    mobileX: 0, mobileY: 1120, mobileWidth: 320, mobileHeight: 450,
   },
   {
     id: 'journal',
     label: 'Journal',
     x: 2400, y: 3200, width: 1600, height: 1100, focusZoom: 0.55,
     sectionIndex: '005',
-    mobileX: 520, mobileY: 1400, mobileWidth: 340, mobileHeight: 500,
+    mobileX: 400, mobileY: 1120, mobileWidth: 320, mobileHeight: 450,
   },
   {
     id: 'contact',
     label: 'Contact',
     x: 5600, y: 3600, width: 1200, height: 900, focusZoom: 0.7,
     sectionIndex: '006',
-    mobileX: 260, mobileY: 2180, mobileWidth: 340, mobileHeight: 500,
+    mobileX: 200, mobileY: 1680, mobileWidth: 320, mobileHeight: 450,
   },
 ];
 
-// Connections
 export const CONNECTIONS: ConnectionConfig[] = [
   { id: 'hero-about', from: 'hero', to: 'about' },
   { id: 'hero-works', from: 'hero', to: 'works' },
@@ -100,8 +98,6 @@ export const CAMERA_DEFAULTS = {
   panEase: 'power4.inOut' as const,
   panDuration: 1.6,
 };
-
-// ─── Helpers ───
 
 export function getNodeById(id: string): NodeConfig | undefined {
   return NODES.find((n) => n.id === id);

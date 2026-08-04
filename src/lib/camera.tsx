@@ -2,11 +2,8 @@
 
 import { createContext, useContext, useRef, useCallback, useState, ReactNode } from 'react';
 import { gsap } from 'gsap';
-import { CAMERA_DEFAULTS, getNodeCenter, getNodeLayout, type NodeConfig } from './canvas-config';
+import { CAMERA_DEFAULTS, getNodeCenter, getNodeLayout, getCanvasBounds, type NodeConfig } from './canvas-config';
 
-// ─────────────────────────────────────────────
-// Camera State (ref-based for 60fps)
-// ─────────────────────────────────────────────
 export interface CameraRef {
   x: number;
   y: number;
@@ -24,24 +21,17 @@ export interface CameraRef {
 
 function createCameraRef(): CameraRef {
   return {
-    x: 0,
-    y: 0,
+    x: 0, y: 0,
     zoom: CAMERA_DEFAULTS.initialZoom,
-    vx: 0,
-    vy: 0,
+    vx: 0, vy: 0,
     isDragging: false,
-    lastPointerX: 0,
-    lastPointerY: 0,
+    lastPointerX: 0, lastPointerY: 0,
     lastMoveTime: 0,
-    pinchStartDist: 0,
-    pinchStartZoom: 0,
+    pinchStartDist: 0, pinchStartZoom: 0,
     pointers: new Map(),
   };
 }
 
-// ─────────────────────────────────────────────
-// Camera Context
-// ─────────────────────────────────────────────
 interface CameraContextValue {
   cameraRef: React.MutableRefObject<CameraRef>;
   containerRef: React.MutableRefObject<HTMLDivElement | null>;
@@ -60,9 +50,6 @@ export function useCamera() {
   return ctx;
 }
 
-// ─────────────────────────────────────────────
-// Camera Provider
-// ─────────────────────────────────────────────
 export function CameraProvider({ children }: { children: ReactNode }) {
   const cameraRef = useRef<CameraRef>(createCameraRef());
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -75,7 +62,7 @@ export function CameraProvider({ children }: { children: ReactNode }) {
     el.style.transform = `translate(${x}px, ${y}px) scale(${zoom})`;
   }, []);
 
-  // Cinematic fly-to node — responsive zoom
+  // Fly-to node — responsive
   const navigateToNode = useCallback(
     (node: NodeConfig) => {
       const cam = cameraRef.current;
@@ -86,7 +73,6 @@ export function CameraProvider({ children }: { children: ReactNode }) {
       const center = getNodeCenter(node, isMobile);
       const layout = getNodeLayout(node, isMobile);
 
-      // Calculate zoom to fit the node in the viewport
       const targetZoom = isMobile
         ? Math.min(vw / layout.width, vh / layout.height) * 0.92
         : node.focusZoom;
@@ -98,9 +84,7 @@ export function CameraProvider({ children }: { children: ReactNode }) {
       cam.vy = 0;
 
       gsap.to(cam, {
-        x: targetX,
-        y: targetY,
-        zoom: targetZoom,
+        x: targetX, y: targetY, zoom: targetZoom,
         duration: CAMERA_DEFAULTS.panDuration,
         ease: CAMERA_DEFAULTS.panEase,
         onUpdate: () => applyTransform(),
@@ -112,29 +96,31 @@ export function CameraProvider({ children }: { children: ReactNode }) {
     [applyTransform],
   );
 
-  // Fly to overview
+  // Fly to overview — uses ACTUAL canvas bounds (mobile-aware)
   const navigateToOverview = useCallback(() => {
     const cam = cameraRef.current;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
+    const isMobile = vw < 768;
+    const bounds = getCanvasBounds(isMobile);
+    const pad = isMobile ? 80 : 400;
 
-    const padding = 400;
     const overviewZoom = Math.min(
-      vw / (7200 + padding * 2),
-      vh / (4200 + padding * 2),
-      0.15,
+      vw / (bounds.width + pad * 2),
+      vh / (bounds.height + pad * 2),
+      isMobile ? 0.6 : 0.18,
     );
 
-    const targetX = vw / 2 - 3500 * overviewZoom;
-    const targetY = vh / 2 - 1800 * overviewZoom;
+    const cx = bounds.minX + bounds.width / 2;
+    const cy = bounds.minY + bounds.height / 2;
+    const targetX = vw / 2 - cx * overviewZoom;
+    const targetY = vh / 2 - cy * overviewZoom;
 
     cam.vx = 0;
     cam.vy = 0;
 
     gsap.to(cam, {
-      x: targetX,
-      y: targetY,
-      zoom: overviewZoom,
+      x: targetX, y: targetY, zoom: overviewZoom,
       duration: 1.4,
       ease: 'power3.inOut',
       onUpdate: () => applyTransform(),
@@ -146,12 +132,9 @@ export function CameraProvider({ children }: { children: ReactNode }) {
   return (
     <CameraContext.Provider
       value={{
-        cameraRef,
-        containerRef,
-        activeNodeId,
-        setActiveNodeId,
-        navigateToNode,
-        navigateToOverview,
+        cameraRef, containerRef,
+        activeNodeId, setActiveNodeId,
+        navigateToNode, navigateToOverview,
         applyTransform,
       }}
     >
