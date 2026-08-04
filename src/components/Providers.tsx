@@ -9,14 +9,15 @@ import { MusicPlayer } from '@/components/ui/MusicPlayer';
 
 interface ProvidersProps {
   children: ReactNode;
+  isLoaded?: boolean;
 }
 
-export function Providers({ children }: ProvidersProps) {
+export function Providers({ children, isLoaded = false }: ProvidersProps) {
   return (
     <ThemeProvider>
       <CameraProvider>
         <CustomCursor />
-        <Navigation />
+        <Navigation isLoaded={isLoaded} />
         <MusicPlayer />
         {children}
       </CameraProvider>

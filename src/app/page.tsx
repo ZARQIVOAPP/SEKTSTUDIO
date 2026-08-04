@@ -9,7 +9,7 @@ export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   return (
-    <Providers>
+    <Providers isLoaded={isLoaded}>
       {!isLoaded && <Loader onComplete={() => setIsLoaded(true)} />}
       {isLoaded && <CanvasWorld />}
     </Providers>

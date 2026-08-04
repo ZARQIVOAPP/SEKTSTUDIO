@@ -5,7 +5,11 @@ import Image from 'next/image';
 import { useTheme } from '@/lib/theme';
 import { useCamera } from '@/lib/camera';
 
-export function Navigation() {
+interface NavigationProps {
+  isLoaded?: boolean;
+}
+
+export function Navigation({ isLoaded = false }: NavigationProps) {
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === 'dark';
   const { navigateToOverview, activeNodeId } = useCamera();
@@ -16,12 +20,15 @@ export function Navigation() {
       style={{ padding: '20px 24px' }}
     >
       <div className="flex items-center justify-between">
-        {/* Logo — click to go to overview */}
-        <button
+        {/* Logo — hidden until loader completes, then fades in */}
+        <motion.button
           className="relative pointer-events-auto cursor-pointer"
           style={{ width: 15, height: 32 }}
           onClick={navigateToOverview}
           aria-label="Overview"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isLoaded ? 1 : 0 }}
+          transition={{ duration: 0.3, delay: isLoaded ? 0.15 : 0 }}
         >
           <Image
             src="/images/sekt-logo.png"
@@ -34,7 +41,7 @@ export function Navigation() {
               transition: 'filter 0.5s ease',
             }}
           />
-        </button>
+        </motion.button>
 
         {/* Right controls */}
         <div className="flex items-center gap-3 pointer-events-auto">
