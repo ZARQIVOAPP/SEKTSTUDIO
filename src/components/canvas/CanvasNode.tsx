@@ -65,10 +65,10 @@ export const CanvasNode = memo(function CanvasNode({
           <span
             className="font-mono uppercase block"
             style={{
-              fontSize: isMobile ? '10px' : '22px',
+              fontSize: isMobile ? '14px' : '22px',
               letterSpacing: isMobile ? '0.2em' : '0.5em',
               color: 'var(--color-text-secondary)',
-              marginBottom: isMobile ? '8px' : '20px',
+              marginBottom: isMobile ? '6px' : '20px',
             }}
           >
             {node.sectionIndex}
@@ -77,11 +77,11 @@ export const CanvasNode = memo(function CanvasNode({
           <span
             className="font-display font-bold uppercase tracking-tight"
             style={{
-              fontSize: isMobile ? '1.4rem' : 'clamp(3.5rem, 7vw, 8rem)',
+              fontSize: isMobile ? '2.2rem' : 'clamp(3.5rem, 7vw, 8rem)',
               color: 'var(--color-text-primary)',
               lineHeight: 1,
               textAlign: 'center',
-              padding: isMobile ? '0 8px' : 0,
+              padding: isMobile ? '0 6px' : 0,
             }}
           >
             {node.label}

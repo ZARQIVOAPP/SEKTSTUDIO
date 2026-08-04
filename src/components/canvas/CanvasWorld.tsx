@@ -396,8 +396,10 @@ export function CanvasWorld() {
         ))}
       </div>
 
-      {/* Minimap — always visible */}
-      <Minimap onNodeClick={handleNodeClick} />
+      {/* Minimap — desktop only */}
+      <div className="hidden sm:block">
+        <Minimap onNodeClick={handleNodeClick} />
+      </div>
     </div>
   );
 }
