@@ -6,7 +6,7 @@ import { CAMERA_DEFAULTS, NODES, getNodeById, getCanvasBounds } from '@/lib/canv
 import { CanvasNode } from './CanvasNode';
 import { ConnectionPaths } from './ConnectionPaths';
 import { Minimap } from './Minimap';
-
+import { motion, AnimatePresence } from 'motion/react';
 // Section imports
 import { Hero } from '@/components/sections/Hero';
 import { About } from '@/components/sections/About';
@@ -132,7 +132,6 @@ export function CanvasWorld() {
       if (target.closest('[data-node-content="active"]')) return;
       if (target.closest('[data-mobile-overlay]')) return;
 
-      e.preventDefault();
       const cam = cameraRef.current;
       cam.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
@@ -161,7 +160,6 @@ export function CanvasWorld() {
       cam.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
       if (cam.pointers.size === 2) {
-        e.preventDefault();
         const pts = Array.from(cam.pointers.values());
         const dist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
         const centerX = (pts[0].x + pts[1].x) / 2;
@@ -372,6 +370,33 @@ export function CanvasWorld() {
   const activeSection = activeNodeId ? SECTION_COMPONENTS[activeNodeId] : null;
   const activeNode = activeNodeId ? getNodeById(activeNodeId) : null;
 
+  // ─── Mobile Overlay Pinch to Close ───
+  const overlayPinchStartDist = useRef<number | null>(null);
+
+  const handleOverlayTouchStart = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      overlayPinchStartDist.current = Math.hypot(dx, dy);
+    } else {
+      overlayPinchStartDist.current = null;
+    }
+  }, []);
+
+  const handleOverlayTouchMove = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 2 && overlayPinchStartDist.current !== null) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      
+      // If pinched inwards (zoomed out) by 40px
+      if (dist < overlayPinchStartDist.current - 40) {
+        closeMobileOverlay();
+        overlayPinchStartDist.current = null;
+      }
+    }
+  }, [closeMobileOverlay]);
+
   return (
     <div
       ref={outerRef}
@@ -420,52 +445,61 @@ export function CanvasWorld() {
       </div>
 
       {/* ─── Mobile Fullscreen Overlay ─── */}
-      {isMobileRef.current && activeNodeId && activeSection && activeNode && (
-        <div
-          data-mobile-overlay
-          className="fixed inset-0 z-[100] flex flex-col"
-          style={{
-            backgroundColor: 'var(--color-bg-primary)',
-            touchAction: 'pan-y',
-          }}
-        >
-          {/* Close bar */}
-          <div
-            className="flex items-center justify-between px-4 py-3 flex-shrink-0"
-            style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
+      <AnimatePresence>
+        {isMobileRef.current && activeNodeId && activeSection && activeNode && (
+          <motion.div
+            key="mobile-overlay"
+            data-mobile-overlay
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed inset-0 z-[100] flex flex-col"
+            style={{
+              backgroundColor: 'var(--color-bg-primary)',
+              touchAction: 'pan-y',
+            }}
+            onTouchStart={handleOverlayTouchStart}
+            onTouchMove={handleOverlayTouchMove}
           >
-            <div className="flex items-center gap-2">
-              <span className="font-mono uppercase tracking-widest" style={{ fontSize: '9px', color: 'var(--color-text-muted)' }}>
-                {activeNode.sectionIndex}
-              </span>
-              <span className="font-display font-bold uppercase" style={{ fontSize: '13px', color: 'var(--color-text-primary)' }}>
-                {activeNode.label}
-              </span>
-            </div>
-            <button
-              onClick={closeMobileOverlay}
-              className="flex items-center justify-center rounded-full"
-              style={{
-                width: 32,
-                height: 32,
-                backgroundColor: 'rgba(255,255,255,0.06)',
-                color: 'var(--color-text-primary)',
-                fontSize: '16px',
-              }}
+            {/* Close bar */}
+            <div
+              className="flex items-center justify-between px-4 py-3 flex-shrink-0"
+              style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
             >
-              ✕
-            </button>
-          </div>
+              <div className="flex items-center gap-2">
+                <span className="font-mono uppercase tracking-widest" style={{ fontSize: '9px', color: 'var(--color-text-muted)' }}>
+                  {activeNode.sectionIndex}
+                </span>
+                <span className="font-display font-bold uppercase" style={{ fontSize: '13px', color: 'var(--color-text-primary)' }}>
+                  {activeNode.label}
+                </span>
+              </div>
+              <button
+                onClick={closeMobileOverlay}
+                className="flex items-center justify-center rounded-full"
+                style={{
+                  width: 32,
+                  height: 32,
+                  backgroundColor: 'rgba(255,255,255,0.06)',
+                  color: 'var(--color-text-primary)',
+                  fontSize: '16px',
+                }}
+              >
+                ✕
+              </button>
+            </div>
 
-          {/* Section content — scrollable, phone width */}
-          <div
-            className="flex-1 overflow-y-auto overflow-x-hidden"
-            style={{ WebkitOverflowScrolling: 'touch' }}
-          >
-            {(() => { const C = activeSection; return <C />; })()}
-          </div>
-        </div>
-      )}
+            {/* Section content — scrollable, phone width */}
+            <div
+              className="flex-1 overflow-y-auto overflow-x-hidden"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
+              {(() => { const C = activeSection; return <C />; })()}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Minimap */}
       <Minimap onNodeClick={handleNodeClick} />
