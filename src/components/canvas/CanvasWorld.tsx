@@ -351,51 +351,11 @@ export function CanvasWorld() {
   // ─── Navigate to node ───
   const handleNodeClick = useCallback(
     (nodeId: string) => {
-      if (isMobileRef.current) {
-        setActiveNodeId(nodeId);
-      } else {
-        const node = getNodeById(nodeId);
-        if (node) navigateToNode(node);
-      }
+      const node = getNodeById(nodeId);
+      if (node) navigateToNode(node);
     },
-    [navigateToNode, setActiveNodeId],
+    [navigateToNode],
   );
-
-  // ─── Close mobile overlay ───
-  const closeMobileOverlay = useCallback(() => {
-    setActiveNodeId(null);
-  }, [setActiveNodeId]);
-
-  // Get the active node's section component for mobile overlay
-  const activeSection = activeNodeId ? SECTION_COMPONENTS[activeNodeId] : null;
-  const activeNode = activeNodeId ? getNodeById(activeNodeId) : null;
-
-  // ─── Mobile Overlay Pinch to Close ───
-  const overlayPinchStartDist = useRef<number | null>(null);
-
-  const handleOverlayTouchStart = useCallback((e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      overlayPinchStartDist.current = Math.hypot(dx, dy);
-    } else {
-      overlayPinchStartDist.current = null;
-    }
-  }, []);
-
-  const handleOverlayTouchMove = useCallback((e: React.TouchEvent) => {
-    if (e.touches.length === 2 && overlayPinchStartDist.current !== null) {
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      const dist = Math.hypot(dx, dy);
-      
-      // If pinched inwards (zoomed out) by 40px
-      if (dist < overlayPinchStartDist.current - 40) {
-        closeMobileOverlay();
-        overlayPinchStartDist.current = null;
-      }
-    }
-  }, [closeMobileOverlay]);
 
   return (
     <div
@@ -434,7 +394,7 @@ export function CanvasWorld() {
           <CanvasNode
             key={node.id}
             node={node}
-            isActive={!isMobileRef.current && activeNodeId === node.id}
+            isActive={activeNodeId === node.id}
             onClick={() => handleNodeClick(node.id)}
           >
             {SECTION_COMPONENTS[node.id] ? (
@@ -444,65 +404,10 @@ export function CanvasWorld() {
         ))}
       </div>
 
-      {/* ─── Mobile Fullscreen Overlay ─── */}
-      <AnimatePresence>
-        {isMobileRef.current && activeNodeId && activeSection && activeNode && (
-          <motion.div
-            key="mobile-overlay"
-            data-mobile-overlay
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-[100] flex flex-col"
-            style={{
-              backgroundColor: 'var(--color-bg-primary)',
-              touchAction: 'pan-y',
-            }}
-            onTouchStart={handleOverlayTouchStart}
-            onTouchMove={handleOverlayTouchMove}
-          >
-            {/* Close bar */}
-            <div
-              className="flex items-center justify-between px-4 py-3 flex-shrink-0"
-              style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
-            >
-              <div className="flex items-center gap-2">
-                <span className="font-mono uppercase tracking-widest" style={{ fontSize: '9px', color: 'var(--color-text-muted)' }}>
-                  {activeNode.sectionIndex}
-                </span>
-                <span className="font-display font-bold uppercase" style={{ fontSize: '13px', color: 'var(--color-text-primary)' }}>
-                  {activeNode.label}
-                </span>
-              </div>
-              <button
-                onClick={closeMobileOverlay}
-                className="flex items-center justify-center rounded-full"
-                style={{
-                  width: 32,
-                  height: 32,
-                  backgroundColor: 'rgba(255,255,255,0.06)',
-                  color: 'var(--color-text-primary)',
-                  fontSize: '16px',
-                }}
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Section content — scrollable, phone width */}
-            <div
-              className="flex-1 overflow-y-auto overflow-x-hidden"
-              style={{ WebkitOverflowScrolling: 'touch' }}
-            >
-              {(() => { const C = activeSection; return <C />; })()}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Minimap */}
-      <Minimap onNodeClick={handleNodeClick} />
+      <div className="hidden sm:block">
+        <Minimap onNodeClick={handleNodeClick} />
+      </div>
     </div>
   );
 }

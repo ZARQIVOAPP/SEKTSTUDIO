@@ -18,17 +18,18 @@ export const CanvasNode = memo(function CanvasNode({
 }: CanvasNodeProps) {
   return (
     <div
-      className="absolute"
+      className="absolute transition-all duration-300"
       style={{
-        left: node.x,
-        top: node.y,
-        width: node.width,
-        height: node.height,
+        left: node.x + node.width / 2,
+        top: node.y + node.height / 2,
+        transform: 'translate(-50%, -50%)',
       }}
     >
       <div
-        className="relative w-full h-full"
+        className="relative w-[360px] h-[680px] md:w-[var(--desktop-w)] md:h-[var(--desktop-h)]"
         style={{
+          '--desktop-w': `${node.width}px`,
+          '--desktop-h': `${node.height}px`,
           border: isActive
             ? '6px solid var(--color-text-primary)'
             : '4px solid var(--color-text-secondary)',
@@ -39,7 +40,7 @@ export const CanvasNode = memo(function CanvasNode({
             : '0 0 50px rgba(255,255,255,0.1), 0 0 0 2px var(--color-text-secondary)',
           transition: 'opacity 0.6s ease, border-color 0.4s ease, box-shadow 0.6s ease',
           overflow: 'hidden',
-        }}
+        } as React.CSSProperties}
       >
         {/* ─── Node Label ─── */}
         <div

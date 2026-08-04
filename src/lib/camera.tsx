@@ -88,7 +88,7 @@ export function CameraProvider({ children }: { children: ReactNode }) {
       // On desktop, use the predefined focusZoom
       const isMobile = vw < 768;
       const targetZoom = isMobile
-        ? Math.min(vw / node.width, vh / node.height) * 0.92
+        ? Math.min(vw / 360, vh / 680) * 0.92
         : node.focusZoom;
 
       const targetX = vw / 2 - center.x * targetZoom;
