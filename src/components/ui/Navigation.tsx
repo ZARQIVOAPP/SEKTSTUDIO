@@ -28,7 +28,7 @@ export function Navigation({ isLoaded = false }: NavigationProps) {
           aria-label="Overview"
           initial={{ opacity: 0 }}
           animate={{ opacity: isLoaded ? 1 : 0 }}
-          transition={{ duration: 0.3, delay: isLoaded ? 0.15 : 0 }}
+          transition={{ duration: 0.05 }}
         >
           <Image
             src="/images/sekt-logo.png"
