@@ -58,27 +58,51 @@ export function MaintenancePage() {
         }}
       />
 
-      {/* Background logo — large, low opacity */}
+      {/* Background logo — large, low opacity, 3D vertical spin */}
       <motion.div
         style={{
           position: 'absolute',
           width: '280px',
           height: '580px',
-          opacity: 0.04,
           pointerEvents: 'none',
+          perspective: '1200px',
         }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.04 }}
         transition={{ duration: 2, delay: 0.5 }}
       >
-        <Image
-          src="/images/sekt-logo.png"
-          alt=""
-          fill
-          className="object-contain"
-          style={{ filter: 'invert(1)' }}
-          priority
-        />
+        <motion.div
+          style={{
+            width: '100%',
+            height: '100%',
+            position: 'relative',
+            transformStyle: 'preserve-3d',
+          }}
+          animate={{ rotateY: [0, 360] }}
+          transition={{
+            duration: 12,
+            repeat: Infinity,
+            ease: 'linear',
+          }}
+        >
+          <Image
+            src="/images/sekt-logo.png"
+            alt=""
+            fill
+            className="object-contain"
+            style={{ filter: 'invert(1)', backfaceVisibility: 'hidden' }}
+            priority
+          />
+          {/* Back face so it's visible from behind too */}
+          <Image
+            src="/images/sekt-logo.png"
+            alt=""
+            fill
+            className="object-contain"
+            style={{ filter: 'invert(1)', backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+            priority
+          />
+        </motion.div>
       </motion.div>
 
       {/* ─── Main Content ─── */}
