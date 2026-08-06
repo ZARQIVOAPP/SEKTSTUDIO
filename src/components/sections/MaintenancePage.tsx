@@ -58,7 +58,7 @@ export function MaintenancePage() {
         }}
       />
 
-      {/* Background logo — large, low opacity, 3D vertical spin */}
+      {/* Background logo — 3D extruded vertical spin */}
       <motion.div
         style={{
           position: 'absolute',
@@ -68,7 +68,7 @@ export function MaintenancePage() {
           perspective: '1200px',
         }}
         initial={{ opacity: 0 }}
-        animate={{ opacity: 0.04 }}
+        animate={{ opacity: 0.05 }}
         transition={{ duration: 2, delay: 0.5 }}
       >
         <motion.div
@@ -85,23 +85,36 @@ export function MaintenancePage() {
             ease: 'linear',
           }}
         >
+          {/* Main face — visible from both sides for smooth full rotation */}
           <Image
             src="/images/sekt-logo.png"
             alt=""
             fill
             className="object-contain"
-            style={{ filter: 'invert(1)', backfaceVisibility: 'hidden' }}
+            style={{ filter: 'invert(1)' }}
             priority
           />
-          {/* Back face so it's visible from behind too */}
-          <Image
-            src="/images/sekt-logo.png"
-            alt=""
-            fill
-            className="object-contain"
-            style={{ filter: 'invert(1)', backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
-            priority
-          />
+
+          {/* Extrusion layers — create depth/thickness */}
+          {Array.from({ length: 8 }, (_, i) => (
+            <div
+              key={`extrude-${i}`}
+              style={{
+                position: 'absolute',
+                inset: 0,
+                transform: `translateZ(${-(i + 1) * 2}px)`,
+                opacity: 1 - i * 0.08,
+              }}
+            >
+              <Image
+                src="/images/sekt-logo.png"
+                alt=""
+                fill
+                className="object-contain"
+                style={{ filter: 'invert(1) brightness(0.6)' }}
+              />
+            </div>
+          ))}
         </motion.div>
       </motion.div>
 
