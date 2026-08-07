@@ -5,12 +5,56 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ScrollReveal } from '../motion/ScrollReveal';
 
 const SERVICES = [
-  { number: '01', title: 'Creative Direction', description: 'Defining the vision. Setting the trajectory. Every project begins with a singular creative thesis that guides every subsequent decision.' },
-  { number: '02', title: 'Brand Identity', description: 'Not logos. Systems. We engineer comprehensive identity architectures that function across every touchpoint and scale.' },
-  { number: '03', title: 'Film Production', description: 'From concept to color grade. Cinematic storytelling that transcends the screen and embeds itself in memory.' },
-  { number: '04', title: 'Motion Design', description: 'Movement with meaning. Every frame choreographed, every transition intentional, every sequence engineered.' },
-  { number: '05', title: 'Experiential Design', description: 'Physical and digital spaces that immerse, disorient, and transform. Architecture for the senses.' },
-  { number: '06', title: 'Digital Experiences', description: 'Interfaces as art. Websites, applications, and platforms that reject convention and reward exploration.' },
+  {
+    number: '01',
+    title: 'Creative Direction',
+    description: 'Setting the thesis and visual vision. We shape cohesive concepts that define tone, aesthetic, and cultural trajectory from inception to execution.',
+  },
+  {
+    number: '02',
+    title: 'Brand Identity',
+    description: 'Comprehensive identity systems engineered for longevity. From typographic frameworks to visual languages that command attention across every medium.',
+  },
+  {
+    number: '03',
+    title: 'Filmmaking',
+    description: 'Cinematic storytelling with intentional atmosphere. Concept, direction, and production crafted to move audiences and endure in memory.',
+  },
+  {
+    number: '04',
+    title: 'Photography',
+    description: 'High-contrast editorial, commercial, and spatial imagery. Capturing raw mood, form, and texture with precision and narrative weight.',
+  },
+  {
+    number: '05',
+    title: 'Color Grading',
+    description: 'Distinct visual tone and chromatic depth. Sculpting light and palette to elevate film, digital media, and imagery into art.',
+  },
+  {
+    number: '06',
+    title: 'Web Design & Development',
+    description: 'Custom, immersive digital environments. Bespoke web architecture, fluid animations, and interactive canvases built to disrupt conventional web standards.',
+  },
+  {
+    number: '07',
+    title: 'Graphic Design',
+    description: 'Obsessive typographic, spatial, and editorial layouts. Visual communication that cuts through noise with clarity and aesthetic power.',
+  },
+  {
+    number: '08',
+    title: 'Music Production',
+    description: 'Sonic architectures, atmospheric sound design, and custom scoring. Crafting auditory landscapes engineered for film, spaces, and digital worlds.',
+  },
+  {
+    number: '09',
+    title: 'Songwriting & Ghostwriting',
+    description: 'Conceptual lyricism and vocal arrangement. Crafting authentic, resonant narratives and melodies tailored to high-tier creative visions.',
+  },
+  {
+    number: '10',
+    title: 'Merchandise & Product Design',
+    description: 'Physical artifacts and tactile brand extensions. Limited garments, physical objects, and packaging built with archival quality.',
+  },
 ];
 
 export function Services() {
