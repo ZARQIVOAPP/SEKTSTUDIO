@@ -18,31 +18,31 @@ export function About() {
         </ScrollReveal>
 
         {/* Main Content Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-6 mb-48">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-6 mb-36">
           
-          {/* Left Column (Statement) */}
-          <div className="md:col-span-6 lg:col-span-5">
+          {/* Left Column (Main Statement) */}
+          <div className="md:col-span-6 lg:col-span-6">
             <RevealText 
-              text="We are not an agency. We are a collective operating at the intersection of sound, space, and pixel."
-              className="text-2xl md:text-3xl lg:text-4xl font-display font-medium leading-tight tracking-tight"
+              text="SEKT STUDIOS is an independent creative studio building ideas across culture, design, film, and digital experiences."
+              className="text-2xl md:text-3xl lg:text-4xl font-display font-medium leading-snug tracking-tight text-primary"
             />
           </div>
 
           {/* Right Column (Body Text) */}
           <div className="md:col-span-6 lg:col-span-5 lg:col-start-8 flex flex-col justify-end">
             <RevealText 
-              text="SEKT STUDIOS is a multidisciplinary creative engine. We build worlds, not campaigns. We engineer culture, not content. Every project is an artifact — designed to endure, crafted to provoke, built to transcend the medium it inhabits."
-              className="text-base md:text-lg text-secondary leading-relaxed"
+              text="We believe thoughtful work has the power to move people, shape culture, and leave a lasting impression — engineered to transcend the medium it inhabits."
+              className="text-base md:text-lg font-mono text-secondary leading-relaxed"
             />
           </div>
 
         </div>
 
-        {/* Pull Quote Section */}
-        <ScrollReveal className="w-full relative py-24 border-t border-white/10 flex items-center justify-center">
-          <h2 className="text-4xl md:text-6xl lg:text-8xl font-display font-light italic tracking-tight text-center text-primary leading-none px-4 max-w-[90vw]">
-            "We do not follow trends.<br />
-            <span className="text-secondary ml-8 md:ml-16">We set coordinates."</span>
+        {/* Pull Quote / Archival Tagline */}
+        <ScrollReveal className="w-full relative py-20 border-t border-white/10 flex items-center justify-center">
+          <h2 className="text-3xl md:text-5xl lg:text-7xl font-display font-light italic tracking-tight text-center text-primary leading-tight px-4 max-w-[90vw]">
+            "An evolving archive of stories,<br />
+            <span className="text-secondary ml-4 md:ml-12">objects, and collaborations."</span>
           </h2>
         </ScrollReveal>
 
