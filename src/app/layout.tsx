@@ -33,6 +33,11 @@ export const metadata: Metadata = {
     title: 'SEKT STUDIOS',
     description: 'Multidisciplinary Creative Collective',
   },
+  icons: {
+    icon: '/icon.png',
+    shortcut: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
   robots: {
     index: true,
     follow: true,
