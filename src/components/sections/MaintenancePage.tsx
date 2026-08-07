@@ -130,7 +130,7 @@ export function MaintenancePage() {
         >
           <Image
             src="/images/sekt-logo.png"
-            alt="SEKT STUDIO"
+            alt="SEKT STUDIOS"
             fill
             className="object-contain"
             style={{ filter: 'invert(1)' }}

@@ -17,20 +17,20 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'SEKT STUDIO — Multidisciplinary Creative Collective',
-  description: 'SEKT STUDIO is a multidisciplinary creative collective engineering the intersection of design, film, music, art, and culture. We do not make content. We make artifacts.',
-  keywords: ['creative studio', 'design', 'film', 'music', 'art direction', 'brand identity', 'motion design'],
-  authors: [{ name: 'SEKT STUDIO' }],
+  title: 'SEKT STUDIOS — Multidisciplinary Creative Collective',
+  description: 'SEKT STUDIOS is a multidisciplinary creative collective engineering the intersection of design, film, music, art, and culture. We do not make content. We make artifacts.',
+  metadataBase: new URL('https://sekt.studio'),
+  authors: [{ name: 'SEKT STUDIOS' }],
   openGraph: {
-    title: 'SEKT STUDIO — Multidisciplinary Creative Collective',
-    description: 'Engineering the intersection of design, film, music, art, and culture.',
+    title: 'SEKT STUDIOS — Multidisciplinary Creative Collective',
+    description: 'SEKT STUDIOS is a multidisciplinary creative collective.',
+    url: 'https://sekt.studio',
+    siteName: 'SEKT STUDIOS',
     type: 'website',
-    locale: 'en_US',
-    siteName: 'SEKT STUDIO',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SEKT STUDIO',
+    title: 'SEKT STUDIOS',
     description: 'Multidisciplinary Creative Collective',
   },
   robots: {

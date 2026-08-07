@@ -32,7 +32,7 @@ export function Navigation({ isLoaded = false }: NavigationProps) {
         >
           <Image
             src="/images/sekt-logo.png"
-            alt="SEKT STUDIO"
+            alt="SEKT STUDIOS"
             fill
             sizes="15px"
             className="object-contain"

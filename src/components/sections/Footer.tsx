@@ -72,7 +72,7 @@ export function Footer() {
             style={{ color: 'var(--color-text-muted)' }}
             onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-text-primary)')}
             onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-text-muted)')}
-            aria-label={`Visit SEKT STUDIO on ${link.label}`}
+            aria-label={`Visit SEKT STUDIOS on ${link.label}`}
           >
             {link.label}
           </a>
@@ -91,7 +91,7 @@ export function Footer() {
               letterSpacing: '-0.03em',
             }}
           >
-            SEKT STUDIO
+            SEKT STUDIOS
           </span>
         </motion.div>
       </div>
@@ -101,7 +101,7 @@ export function Footer() {
         className="flex justify-between items-center px-6 md:px-12 lg:px-24 pb-8 font-mono uppercase tracking-widest"
         style={{ fontSize: 'var(--text-micro)', color: 'var(--color-text-muted)' }}
       >
-        <span>© 2024 SEKT STUDIO</span>
+        <span>© 2024 SEKT STUDIOS</span>
         <span>Designed & Engineered by SEKT</span>
       </div>
 

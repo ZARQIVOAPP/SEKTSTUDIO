@@ -41,12 +41,35 @@ export function Hero() {
       style={{ backgroundColor: 'var(--color-bg-primary)' }}
       onMouseMove={handleMouseMove}
     >
-      {/* Radial background */}
+      {/* Background Video */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+        style={{
+          opacity: 0.4,
+          filter: 'contrast(1.15) brightness(0.8) saturation(0.85)',
+        }}
+      >
+        <source src="/video/hero-bg.mov" />
+      </video>
+
+      {/* Film Grain Texture Overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.07]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+        }}
+      />
+
+      {/* Cinematic Vignette Overlay */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            'radial-gradient(ellipse 80% 80% at 50% 50%, var(--color-bg-secondary) 0%, var(--color-bg-primary) 100%)',
+            'radial-gradient(ellipse 85% 85% at 50% 50%, transparent 20%, rgba(10,10,10,0.85) 100%)',
         }}
       />
 
@@ -67,43 +90,51 @@ export function Hero() {
         SEKT
       </motion.h1>
 
-      {/* STUDIO */}
+      {/* STUDIOS */}
       <motion.span
         className="font-display font-light uppercase leading-none tracking-tight block relative"
         style={{
           fontSize: 'clamp(3rem, 12vw, 14rem)',
-          opacity: 0.9,
+          opacity: 0.95,
           color: 'var(--color-text-primary)',
           x: studioX,
           y: studioY,
         }}
         initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 0.9, y: 0 }}
+        animate={{ opacity: 0.95, y: 0 }}
         transition={{ duration: 1.2, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
       >
-        STUDIO
+        STUDIOS
       </motion.span>
 
-      {/* Enter CTA */}
+      {/* Enter CTA — Extra Large, Bold, White, Maximum Visibility */}
       <motion.button
-        className="absolute bottom-[15%] font-mono uppercase tracking-[0.4em] cursor-pointer"
+        className="absolute bottom-[15%] font-mono font-black uppercase tracking-[0.5em] cursor-pointer"
         style={{
-          fontSize: '10px',
-          color: 'var(--color-text-muted)',
-          padding: '12px 28px',
-          border: '1px solid var(--color-border)',
+          fontSize: '16px',
+          fontWeight: 800,
+          color: '#FFFFFF',
+          padding: '18px 52px',
+          border: '2.5px solid #FFFFFF',
           borderRadius: '50px',
-          backgroundColor: 'transparent',
+          backgroundColor: 'rgba(0, 0, 0, 0.75)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          boxShadow: '0 0 35px rgba(0, 0, 0, 0.9), 0 0 25px rgba(255, 255, 255, 0.25)',
           pointerEvents: 'auto',
-          transition: 'border-color 0.4s ease, color 0.4s ease',
+          transition: 'all 0.3s ease',
           zIndex: 10,
         }}
         onClick={handleEnter}
         data-cursor="pointer"
         whileHover={{
-          borderColor: 'var(--color-text-secondary)',
-          color: 'var(--color-text-primary)',
+          scale: 1.08,
+          backgroundColor: '#FFFFFF',
+          color: '#0A0A0A',
+          borderColor: '#FFFFFF',
+          boxShadow: '0 0 45px rgba(255, 255, 255, 0.6)',
         }}
+        whileTap={{ scale: 0.95 }}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
@@ -111,12 +142,20 @@ export function Hero() {
         Enter
       </motion.button>
 
-      {/* Tagline */}
+      {/* Tagline — Bold White & High Contrast */}
       <motion.p
-        className="absolute bottom-[8%] font-mono uppercase tracking-widest"
+        className="absolute bottom-[8%] font-mono font-bold uppercase tracking-[0.25em]"
         style={{
-          fontSize: 'var(--text-micro)',
-          color: 'var(--color-text-muted)',
+          fontSize: 'clamp(0.7rem, 1vw, 0.85rem)',
+          fontWeight: 700,
+          color: '#FFFFFF',
+          textShadow: '0 2px 10px rgba(0,0,0,0.9), 0 0 20px rgba(0,0,0,0.8)',
+          backgroundColor: 'rgba(0, 0, 0, 0.4)',
+          padding: '6px 16px',
+          borderRadius: '4px',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          border: '1px solid rgba(255, 255, 255, 0.15)',
         }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

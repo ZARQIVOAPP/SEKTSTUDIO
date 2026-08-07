@@ -11,8 +11,10 @@ interface Track {
   title: string;
   artist: string;
   duration: number; // seconds
-  // Synthesis parameters
-  synth: {
+  // File-based track (optional)
+  file?: string;
+  // Synthesis parameters (optional — used when no file)
+  synth?: {
     baseFreq: number;
     type: OscillatorType;
     harmonics: { freq: number; type: OscillatorType; gain: number }[];
@@ -27,8 +29,15 @@ interface Track {
 const TRACKS: Track[] = [
   {
     id: 1,
+    title: 'Tab Tab',
+    artist: 'Zeb',
+    duration: 60,
+    file: '/audio/tab-tab.mp4',
+  },
+  {
+    id: 2,
     title: 'Meridian',
-    artist: 'SEKT STUDIO',
+    artist: 'SEKT STUDIOS',
     duration: 32,
     synth: {
       baseFreq: 55,
@@ -47,12 +56,12 @@ const TRACKS: Track[] = [
     },
   },
   {
-    id: 2,
+    id: 3,
     title: 'Nocturne',
-    artist: 'SEKT STUDIO',
+    artist: 'SEKT STUDIOS',
     duration: 28,
     synth: {
-      baseFreq: 73.42, // D2
+      baseFreq: 73.42,
       type: 'triangle',
       harmonics: [
         { freq: 146.83, type: 'sine', gain: 0.12 },
@@ -68,12 +77,12 @@ const TRACKS: Track[] = [
     },
   },
   {
-    id: 3,
+    id: 4,
     title: 'Void Protocol',
-    artist: 'SEKT STUDIO',
+    artist: 'SEKT STUDIOS',
     duration: 36,
     synth: {
-      baseFreq: 41.2, // E1
+      baseFreq: 41.2,
       type: 'sawtooth',
       harmonics: [
         { freq: 82.41, type: 'sine', gain: 0.1 },
@@ -98,7 +107,9 @@ class AmbientSynthEngine {
   private oscillators: OscillatorNode[] = [];
   private lfo: OscillatorNode | null = null;
   private noiseSource: AudioBufferSourceNode | null = null;
+  private audioElement: HTMLAudioElement | null = null;
   private isPlaying = false;
+  onTrackEnd: (() => void) | null = null;
 
   init() {
     if (this.ctx) return;
@@ -109,24 +120,38 @@ class AmbientSynthEngine {
 
   play(track: Track, fadeIn = 1.5) {
     this.stop(0.05);
+
+    // File-based track
+    if (track.file) {
+      this.audioElement = new Audio(track.file);
+      this.audioElement.volume = 0.5;
+      this.audioElement.loop = false;
+      this.audioElement.onended = () => {
+        this.isPlaying = false;
+        this.onTrackEnd?.();
+      };
+      this.audioElement.play().catch(() => {});
+      this.isPlaying = true;
+      return;
+    }
+
+    // Synth-based track
+    if (!track.synth) return;
     this.init();
     if (!this.ctx) return;
 
     const ctx = this.ctx;
     const now = ctx.currentTime;
 
-    // Master gain with fade-in
     this.masterGain = ctx.createGain();
     this.masterGain.gain.setValueAtTime(0, now);
     this.masterGain.gain.linearRampToValueAtTime(0.12, now + fadeIn);
 
-    // Low-pass filter
     const filter = ctx.createBiquadFilter();
     filter.type = 'lowpass';
     filter.frequency.setValueAtTime(track.synth.filterFreq, now);
     filter.Q.setValueAtTime(track.synth.filterQ, now);
 
-    // Slowly open filter for evolving texture
     filter.frequency.linearRampToValueAtTime(
       track.synth.filterFreq * 1.8,
       now + track.duration * 0.6
@@ -136,7 +161,6 @@ class AmbientSynthEngine {
       now + track.duration
     );
 
-    // LFO → filter modulation
     this.lfo = ctx.createOscillator();
     const lfoGain = ctx.createGain();
     this.lfo.type = 'sine';
@@ -146,7 +170,6 @@ class AmbientSynthEngine {
     lfoGain.connect(filter.frequency);
     this.lfo.start(now);
 
-    // Base oscillator
     const baseOsc = ctx.createOscillator();
     const baseGain = ctx.createGain();
     baseOsc.type = track.synth.type;
@@ -157,27 +180,22 @@ class AmbientSynthEngine {
     baseOsc.start(now);
     this.oscillators.push(baseOsc);
 
-    // Harmonic oscillators
     for (const h of track.synth.harmonics) {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = h.type;
       osc.frequency.setValueAtTime(h.freq, now);
       gain.gain.setValueAtTime(h.gain, now);
-
-      // Subtle frequency drift for organic feel
       osc.frequency.setValueAtTime(h.freq, now);
       osc.frequency.linearRampToValueAtTime(h.freq * 1.002, now + 4);
       osc.frequency.linearRampToValueAtTime(h.freq * 0.998, now + 8);
       osc.frequency.linearRampToValueAtTime(h.freq, now + 12);
-
       osc.connect(gain);
       gain.connect(filter);
       osc.start(now);
       this.oscillators.push(osc);
     }
 
-    // Noise layer (textured air)
     if (track.synth.noiseGain > 0) {
       const bufferSize = ctx.sampleRate * 2;
       const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
@@ -188,30 +206,37 @@ class AmbientSynthEngine {
       this.noiseSource = ctx.createBufferSource();
       this.noiseSource.buffer = buffer;
       this.noiseSource.loop = true;
-
       const noiseGain = ctx.createGain();
       noiseGain.gain.setValueAtTime(track.synth.noiseGain, now);
-
       const noiseFilter = ctx.createBiquadFilter();
       noiseFilter.type = 'bandpass';
       noiseFilter.frequency.setValueAtTime(200, now);
       noiseFilter.Q.setValueAtTime(0.5, now);
-
       this.noiseSource.connect(noiseFilter);
       noiseFilter.connect(noiseGain);
       noiseGain.connect(filter);
       this.noiseSource.start(now);
     }
 
-    // Connect chain: filter → master → destination
     filter.connect(this.masterGain);
     this.masterGain.connect(ctx.destination);
-
     this.isPlaying = true;
   }
 
   stop(fadeOut = 1.0) {
-    if (!this.ctx || !this.masterGain) return;
+    // Stop file audio
+    if (this.audioElement) {
+      this.audioElement.pause();
+      this.audioElement.currentTime = 0;
+      this.audioElement.onended = null;
+      this.audioElement = null;
+    }
+
+    // Stop synth
+    if (!this.ctx || !this.masterGain) {
+      this.isPlaying = false;
+      return;
+    }
     const now = this.ctx.currentTime;
     this.masterGain.gain.linearRampToValueAtTime(0, now + fadeOut);
 
@@ -228,6 +253,20 @@ class AmbientSynthEngine {
 
     setTimeout(cleanup, fadeOut * 1000 + 100);
     this.isPlaying = false;
+  }
+
+  getElapsed(): number {
+    if (this.audioElement) {
+      return Math.floor(this.audioElement.currentTime);
+    }
+    return -1; // synth tracks use their own timer
+  }
+
+  getDuration(): number {
+    if (this.audioElement && this.audioElement.duration && isFinite(this.audioElement.duration)) {
+      return Math.floor(this.audioElement.duration);
+    }
+    return -1;
   }
 
   getIsPlaying() {
@@ -266,11 +305,38 @@ export function MusicPlayer() {
     };
   }, []);
 
+  // Auto-advance to next track when file track ends
+  useEffect(() => {
+    if (!engineRef.current) return;
+    engineRef.current.onTrackEnd = () => {
+      const nextIndex = (currentTrackIndex + 1) % TRACKS.length;
+      setCurrentTrackIndex(nextIndex);
+      setElapsed(0);
+      startTimeRef.current = Date.now();
+      engineRef.current?.play(TRACKS[nextIndex]);
+    };
+  }, [currentTrackIndex]);
+
   // Timer for elapsed display
   const startTimer = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
     startTimeRef.current = Date.now();
     timerRef.current = setInterval(() => {
+      const engine = engineRef.current;
+      // For file tracks, read elapsed from the audio element
+      if (engine) {
+        const fileElapsed = engine.getElapsed();
+        if (fileElapsed >= 0) {
+          setElapsed(fileElapsed);
+          // Update duration from actual file
+          const fileDur = engine.getDuration();
+          if (fileDur > 0) {
+            TRACKS[currentTrackIndex].duration = fileDur;
+          }
+          return;
+        }
+      }
+      // Synth tracks use time-based elapsed
       const secs = Math.floor((Date.now() - startTimeRef.current) / 1000);
       setElapsed(secs % (TRACKS[currentTrackIndex].duration + 1));
     }, 250);
@@ -284,17 +350,16 @@ export function MusicPlayer() {
     setElapsed(0);
   }, []);
 
-  // Auto-loop: restart track when elapsed reaches duration
+  // Auto-loop for synth tracks: restart when elapsed reaches duration
   useEffect(() => {
-    if (isPlaying && elapsed >= currentTrack.duration) {
-      // Move to next track
+    if (isPlaying && !currentTrack.file && elapsed >= currentTrack.duration) {
       const nextIndex = (currentTrackIndex + 1) % TRACKS.length;
       setCurrentTrackIndex(nextIndex);
       setElapsed(0);
       startTimeRef.current = Date.now();
       engineRef.current?.play(TRACKS[nextIndex]);
     }
-  }, [elapsed, isPlaying, currentTrack.duration, currentTrackIndex]);
+  }, [elapsed, isPlaying, currentTrack.duration, currentTrack.file, currentTrackIndex]);
 
   const togglePlay = useCallback(() => {
     if (isPlaying) {

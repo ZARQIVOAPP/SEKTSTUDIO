@@ -105,7 +105,7 @@ export function Loader({ onComplete }: LoaderProps) {
               className="font-display font-medium tracking-[0.3em] uppercase"
               style={{ fontSize: '0.75rem', color: 'var(--color-text-primary)', letterSpacing: '0.35em' }}
             >
-              SEKT STUDIO
+              SEKT STUDIOS
             </span>
           </motion.div>
 
@@ -172,7 +172,7 @@ export function Loader({ onComplete }: LoaderProps) {
         >
           <Image
             src="/images/sekt-logo.png"
-            alt="SEKT STUDIO"
+            alt="SEKT STUDIOS"
             fill
             sizes="120px"
             className="object-contain"

@@ -27,7 +27,7 @@ export interface ConnectionConfig {
 export const NODES: NodeConfig[] = [
   {
     id: 'hero',
-    label: 'SEKT STUDIO',
+    label: 'SEKT STUDIOS',
     x: 0, y: 0, width: 1920, height: 1080, focusZoom: 0.52,
     sectionIndex: '000',
     mobileX: 0, mobileY: 0, mobileWidth: 320, mobileHeight: 450,

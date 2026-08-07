@@ -31,7 +31,7 @@ export function About() {
           {/* Right Column (Body Text) */}
           <div className="md:col-span-6 lg:col-span-5 lg:col-start-8 flex flex-col justify-end">
             <RevealText 
-              text="SEKT STUDIO is a multidisciplinary creative engine. We build worlds, not campaigns. We engineer culture, not content. Every project is an artifact — designed to endure, crafted to provoke, built to transcend the medium it inhabits."
+              text="SEKT STUDIOS is a multidisciplinary creative engine. We build worlds, not campaigns. We engineer culture, not content. Every project is an artifact — designed to endure, crafted to provoke, built to transcend the medium it inhabits."
               className="text-base md:text-lg text-secondary leading-relaxed"
             />
           </div>
