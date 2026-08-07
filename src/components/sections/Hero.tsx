@@ -109,21 +109,21 @@ export function Hero() {
         STUDIOS
       </motion.span>
 
-      {/* Enter CTA — Responsive (Original style on mobile, Extra Large White Glass on Desktop) */}
+      {/* Enter CTA — Responsive (Bold White Glass on Mobile & Desktop) */}
       <motion.button
-        className="absolute bottom-[15%] font-mono uppercase cursor-pointer"
+        className="absolute bottom-[15%] font-mono font-bold uppercase cursor-pointer"
         style={{
-          fontSize: isMobile ? '10px' : '16px',
-          fontWeight: isMobile ? 400 : 800,
-          color: isMobile ? 'var(--color-text-muted)' : '#FFFFFF',
-          padding: isMobile ? '12px 28px' : '18px 52px',
+          fontSize: isMobile ? '12px' : '16px',
+          fontWeight: isMobile ? 700 : 800,
+          color: '#FFFFFF',
+          padding: isMobile ? '14px 32px' : '18px 52px',
           letterSpacing: isMobile ? '0.4em' : '0.5em',
-          border: isMobile ? '1px solid var(--color-border)' : '2.5px solid #FFFFFF',
+          border: isMobile ? '1.5px solid #FFFFFF' : '2.5px solid #FFFFFF',
           borderRadius: '50px',
-          backgroundColor: isMobile ? 'transparent' : 'rgba(0, 0, 0, 0.75)',
-          backdropFilter: isMobile ? 'none' : 'blur(16px)',
-          WebkitBackdropFilter: isMobile ? 'none' : 'blur(16px)',
-          boxShadow: isMobile ? 'none' : '0 0 35px rgba(0, 0, 0, 0.9), 0 0 25px rgba(255, 255, 255, 0.25)',
+          backgroundColor: isMobile ? 'rgba(0, 0, 0, 0.6)' : 'rgba(0, 0, 0, 0.75)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          boxShadow: isMobile ? '0 0 20px rgba(0, 0, 0, 0.8)' : '0 0 35px rgba(0, 0, 0, 0.9), 0 0 25px rgba(255, 255, 255, 0.25)',
           pointerEvents: 'auto',
           transition: 'all 0.3s ease',
           zIndex: 10,
@@ -131,11 +131,11 @@ export function Hero() {
         onClick={handleEnter}
         data-cursor="pointer"
         whileHover={{
-          scale: isMobile ? 1.02 : 1.08,
-          borderColor: isMobile ? 'var(--color-text-secondary)' : '#FFFFFF',
-          color: isMobile ? 'var(--color-text-primary)' : '#0A0A0A',
-          backgroundColor: isMobile ? 'transparent' : '#FFFFFF',
-          boxShadow: isMobile ? 'none' : '0 0 45px rgba(255, 255, 255, 0.6)',
+          scale: isMobile ? 1.04 : 1.08,
+          borderColor: '#FFFFFF',
+          color: '#0A0A0A',
+          backgroundColor: '#FFFFFF',
+          boxShadow: isMobile ? '0 0 25px rgba(255, 255, 255, 0.4)' : '0 0 45px rgba(255, 255, 255, 0.6)',
         }}
         whileTap={{ scale: 0.95 }}
         initial={{ opacity: 0, y: 20 }}
@@ -145,21 +145,21 @@ export function Hero() {
         Enter
       </motion.button>
 
-      {/* Tagline — Responsive (Original style on mobile, Glass Pill on Desktop) */}
+      {/* Tagline — Responsive (High-contrast text on mobile & desktop) */}
       <motion.p
-        className="absolute bottom-[8%] font-mono uppercase"
+        className="absolute bottom-[8%] font-mono font-semibold uppercase"
         style={{
           fontSize: isMobile ? 'var(--text-micro)' : 'clamp(0.7rem, 1vw, 0.85rem)',
-          fontWeight: isMobile ? 400 : 700,
-          letterSpacing: isMobile ? '0.15em' : '0.25em',
-          color: isMobile ? 'var(--color-text-muted)' : '#FFFFFF',
-          textShadow: isMobile ? 'none' : '0 2px 10px rgba(0,0,0,0.9), 0 0 20px rgba(0,0,0,0.8)',
-          backgroundColor: isMobile ? 'transparent' : 'rgba(0, 0, 0, 0.4)',
-          padding: isMobile ? '0' : '6px 16px',
-          borderRadius: isMobile ? '0' : '4px',
-          backdropFilter: isMobile ? 'none' : 'blur(8px)',
-          WebkitBackdropFilter: isMobile ? 'none' : 'blur(8px)',
-          border: isMobile ? 'none' : '1px solid rgba(255, 255, 255, 0.15)',
+          fontWeight: isMobile ? 600 : 700,
+          letterSpacing: isMobile ? '0.2em' : '0.25em',
+          color: '#FFFFFF',
+          textShadow: '0 2px 10px rgba(0,0,0,0.95), 0 0 15px rgba(0,0,0,0.85)',
+          backgroundColor: isMobile ? 'rgba(0, 0, 0, 0.35)' : 'rgba(0, 0, 0, 0.4)',
+          padding: isMobile ? '4px 12px' : '6px 16px',
+          borderRadius: '4px',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
+          border: '1px solid rgba(255, 255, 255, 0.15)',
         }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
