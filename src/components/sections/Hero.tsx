@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'motion/react';
 import { useCamera } from '@/lib/camera';
 import { getNodeById } from '@/lib/canvas-config';
@@ -8,10 +8,23 @@ import { useMediaQuery } from '@/lib/use-media-query';
 
 export function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const { navigateToNode } = useCamera();
   const isMobile = useMediaQuery('(max-width: 767px)');
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
+
+  // Force play & mute for mobile Safari / Chrome compatibility
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video) {
+      video.defaultMuted = true;
+      video.muted = true;
+      video.play().catch(() => {
+        // Ignore autoplay restriction errors
+      });
+    }
+  }, []);
 
   const springX = useSpring(mouseX, { damping: 25, stiffness: 150 });
   const springY = useSpring(mouseY, { damping: 25, stiffness: 150 });
@@ -45,17 +58,19 @@ export function Hero() {
     >
       {/* Background Video */}
       <video
+        ref={videoRef}
         autoPlay
         loop
         muted
         playsInline
         className="absolute inset-0 w-full h-full object-cover pointer-events-none"
         style={{
-          opacity: isMobile ? 0.3 : 0.4,
+          opacity: isMobile ? 0.35 : 0.4,
           filter: 'contrast(1.15) brightness(0.8) saturation(0.85)',
         }}
       >
-        <source src="/video/hero-bg.mov" />
+        <source src="/video/hero-bg.mp4" type="video/mp4" />
+        <source src="/video/hero-bg.mov" type="video/quicktime" />
       </video>
 
       {/* Film Grain Texture Overlay */}
