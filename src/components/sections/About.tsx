@@ -31,7 +31,7 @@ export function About() {
           {/* Right Column (Body Text) */}
           <div className="md:col-span-6 lg:col-span-5 lg:col-start-8 flex flex-col justify-end">
             <RevealText 
-              text="We believe thoughtful work has the power to move people, shape culture, and leave a lasting impression — engineered to transcend the medium it inhabits."
+              text="We believe thoughtful work has the power to move people, shape culture, and leave a lasting impression engineered to transcend the medium it inhabits."
               className="text-base md:text-lg font-mono text-secondary leading-relaxed"
             />
           </div>
