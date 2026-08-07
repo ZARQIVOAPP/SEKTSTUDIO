@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion, useMotionValue, useSpring } from 'motion/react';
+import { useTheme } from '@/lib/theme';
 
 type CursorState = 'default' | 'pointer' | 'view' | 'drag';
 
@@ -15,6 +16,7 @@ function useIsTouchDevice() {
 
 export function CustomCursor() {
   const isTouchDevice = useIsTouchDevice();
+  const { theme } = useTheme();
 
   const mouseX = useMotionValue(-100);
   const mouseY = useMotionValue(-100);
@@ -67,6 +69,7 @@ export function CustomCursor() {
 
   const isActive = hoverState !== 'default';
   const hasText = hoverState === 'view' || hoverState === 'drag';
+  const isLight = theme === 'light';
 
   return (
     <>
@@ -80,7 +83,7 @@ export function CustomCursor() {
           translateY: '-50%',
           width: 8,
           height: 8,
-          backgroundColor: '#F5F5F0',
+          backgroundColor: isLight ? '#0A0A0A' : '#F5F5F0',
           opacity: isActive ? 0 : 1,
           scale: isActive ? 0 : 1,
           zIndex: 9999,
@@ -98,8 +101,7 @@ export function CustomCursor() {
           translateY: '-50%',
           width: isActive ? 60 : 0,
           height: isActive ? 60 : 0,
-          mixBlendMode: 'difference',
-          backgroundColor: isActive ? 'white' : 'transparent',
+          backgroundColor: isActive ? (isLight ? '#0A0A0A' : '#FFFFFF') : 'transparent',
           zIndex: 9999,
         }}
         aria-hidden="true"
@@ -109,8 +111,7 @@ export function CustomCursor() {
             className="uppercase font-bold tracking-widest"
             style={{
               fontSize: '9px',
-              color: 'black',
-              mixBlendMode: 'normal',
+              color: isLight ? '#F5F5F0' : '#0A0A0A',
             }}
           >
             {hoverState === 'view' ? 'View' : 'Drag'}
