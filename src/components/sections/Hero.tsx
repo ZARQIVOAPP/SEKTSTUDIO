@@ -144,29 +144,6 @@ export function Hero() {
       >
         Enter
       </motion.button>
-
-      {/* Tagline — Responsive (High-contrast text on mobile & desktop) */}
-      <motion.p
-        className="absolute bottom-[8%] font-mono font-semibold uppercase"
-        style={{
-          fontSize: isMobile ? 'var(--text-micro)' : 'clamp(0.7rem, 1vw, 0.85rem)',
-          fontWeight: isMobile ? 600 : 700,
-          letterSpacing: isMobile ? '0.2em' : '0.25em',
-          color: '#FFFFFF',
-          textShadow: '0 2px 10px rgba(0,0,0,0.95), 0 0 15px rgba(0,0,0,0.85)',
-          backgroundColor: isMobile ? 'rgba(0, 0, 0, 0.35)' : 'rgba(0, 0, 0, 0.4)',
-          padding: isMobile ? '4px 12px' : '6px 16px',
-          borderRadius: '4px',
-          backdropFilter: 'blur(6px)',
-          WebkitBackdropFilter: 'blur(6px)',
-          border: '1px solid rgba(255, 255, 255, 0.15)',
-        }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8, delay: 0.8 }}
-      >
-        Multidisciplinary Creative Collective
-      </motion.p>
     </div>
   );
 }
