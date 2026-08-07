@@ -23,6 +23,9 @@ export const CanvasNode = memo(function CanvasNode({
   }, []);
 
   const layout = getNodeLayout(node, isMobile);
+  const currentHeight = isMobile
+    ? (isActive ? 460 : layout.height)
+    : layout.height;
 
   return (
     <div
@@ -31,7 +34,8 @@ export const CanvasNode = memo(function CanvasNode({
         left: layout.x,
         top: layout.y,
         width: layout.width,
-        height: layout.height,
+        height: currentHeight,
+        transition: 'height 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
       }}
     >
       <div
@@ -49,7 +53,7 @@ export const CanvasNode = memo(function CanvasNode({
             : isMobile
               ? '0 0 10px rgba(255,255,255,0.04)'
               : '0 0 50px rgba(255,255,255,0.1), 0 0 0 2px var(--color-text-secondary)',
-          transition: 'opacity 0.6s ease, border-color 0.4s ease, box-shadow 0.6s ease',
+          transition: 'opacity 0.6s ease, border-color 0.4s ease, box-shadow 0.6s ease, height 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
           overflow: 'hidden',
         }}
       >
